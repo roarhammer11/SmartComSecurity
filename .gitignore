@@ -3,3 +3,5 @@ bak
 database
 node_modules
 package-lock.json
+dist/__pycache__
+dist/package/__pycache__
