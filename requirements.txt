@@ -1,0 +1,4 @@
+sqlite3 == 3.39.2
+uvicorn == 0.18.2
+python-multipart == 0.0.5
+Jinja2 == 2.11.3

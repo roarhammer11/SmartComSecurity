@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartComSecurity</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg bg-light">
+      <div class="container-fluid">
+        logo
+        <div class="d-flex justify-content-center">
+          <div id="connectedProvider"></div>
+          <button
+            id="networkAlert"
+            class="btn"
+            style="
+              display: none;
+              --bs-btn-bg: #f8d7da;
+              --bs-btn-hover-bg: #f7c3c9;
+              --bs-btn-hover-border-color: #f7c3c9;
+              --bs-btn-active-bg: #f7c3c9;
+              --bs-btn-active-border-color: #f7c3c9;
+            "
+          >
+            <img
+              src="static/icons/alert-red.svg"
+              style="padding-right: 0.2rem; margin-bottom: 0.2rem"
+            />
+            You are not connected to the Binance Smart Chain Mainnet network,<br />
+            click here to add it to your Web3 Provider.
+          </button>
+        </div>
+        <div class="d-flex">
+          <div id="accountAddress"></div>
+        </div>
+      </div>
+    </nav>
+    <main class="container-fluid">
+      <section>
+        <button
+          type="button"
+          id="connectButton"
+          class="btn btn-lg btn-success"
+          style="
+            --bs-btn-padding-y: 1rem;
+            --bs-btn-padding-x: 5rem;
+            --bs-btn-font-size: 1rem;
+            margin-left: 1rem;
+          "
+        >
+          Connect Wallet
+        </button>
+        <form id="uploadForm">
+          <button
+            type="button"
+            id="selectFile"
+            class="btn btn-lg btn-success"
+            style="
+              --bs-btn-padding-y: 1rem;
+              --bs-btn-padding-x: 5rem;
+              --bs-btn-font-size: 1rem;
+              margin-left: 1rem;
+            "
+          >
+            Select File
+          </button>
+          <input
+            type="file"
+            name="uploadFile"
+            id="uploadFileButton"
+            style="display: none"
+          />
+          <input
+            type="text"
+            name="metamaskAddress"
+            id="metamaskAddress"
+            style="display: none"
+          />
+          <input type="submit" id="uploadFormSubmit" style="display: none" />
+        </form>
+        <br />
+        Save File
+        <form id="saveFileForm">
+          <input type="number" name="hashId" id="hashId" />
+          <button id="saveFile">Save File</button>
+          <input
+            type="text"
+            name="saveFileMetamaskAddress"
+            id="saveFileMetamaskAddress"
+            style="display: none"
+          />
+          <input
+            type="submit"
+            id="saveFileFormSubmit"
+            style="display: none"
+            onclick="this.disabled=true;"
+          />
+        </form>
+
+        <button
+          id="modalButton"
+          class="btn btn-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#providerOptions"
+          hidden
+        ></button>
+        <div
+          class="modal fade"
+          id="providerOptions"
+          tabindex="-1"
+          aria-labelledby="exampleModalLabel"
+          aria-hidden="true"
+        >
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header text-center">
+                <h5 class="modal-title w-100 fs-3" id="exampleModalLabel">
+                  Web3 Providers
+                </h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div class="modal-body">
+                No Web3 provider detected, please install one of the following.
+                <div class="d-grid gap-2 mt-4">
+                  <button id="metamask" class="btn btn-primary fs-5 text-start">
+                    Metamask
+                    <img class="float-end" src="static/icons/metamask.png" />
+                  </button>
+                  <button
+                    id="mathWallet"
+                    class="btn btn-primary fs-5 text-start"
+                  >
+                    Math Wallet
+                    <img class="float-end" src="static/icons/mathwallet.png" />
+                  </button>
+                  <button
+                    id="binanceWallet"
+                    class="btn btn-primary fs-5 text-start"
+                  >
+                    Binance Wallet
+                    <img
+                      class="float-end"
+                      src="static/icons/binancewallet.png"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="static/javascript/main.js" defer></script>
+  </body>
+</html>
