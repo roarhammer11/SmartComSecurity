@@ -34,6 +34,10 @@ class Database:
     #private functions
     def __connectDatabase(this):
         currentPath = os.path.abspath(os.getcwd())
+        try:
+            os.mkdir(currentPath + r"\database")
+        except:
+            ...
         databasePath = currentPath + r"\database\files.db"
         try:
             conn = sqlite3.connect(databasePath)
