@@ -15,6 +15,7 @@ const saveFile = document.getElementById("saveFile");
 const saveFileMetamaskAddress = document.getElementById(
   "saveFileMetamaskAddress"
 );
+const showFiles = document.getElementById("showFiles");
 const saveFileFormSubmit = document.getElementById("saveFileFormSubmit");
 const provider = document.getElementById("connectedProvider");
 const accountAddress = document.getElementById("accountAddress");
@@ -80,14 +81,13 @@ const initialize = async () => {
     };
   };
 
-  saveFile.onclick = async () => {
-    saveFileMetamaskAddress.value = accounts;
-    saveFileFormSubmit.click();
-  };
+  // saveFile.onclick = async () => {
+  //   saveFileMetamaskAddress.value = accounts;
+  //   saveFileFormSubmit.click();
+  // };
 
   if (injected) {
     ethereum.autoRefreshOnNetworkChange = false;
-
     networkAlertButton.onclick = () => {
       redirectPage("https://chainlist.org");
     };
@@ -107,6 +107,8 @@ const initialize = async () => {
     ethereum.on("chainChanged", (chain) => {
       chainNetworkHandler(chain);
     });
+
+    renderFiles();
   }
 };
 
@@ -120,7 +122,7 @@ $("#uploadForm").submit(function (e) {
   for (const f of file) {
     formData.append("uploadFile", f);
   }
-  fetch("/dashboard/upload", {method: "POST", body: formData})
+  fetch("/dashboard/upload-files", {method: "POST", body: formData})
     .then((response) => response.json())
     .then((data) => {
       alert("Successfuly saved " + data.file_name + " to the database.");
@@ -131,35 +133,59 @@ $("#uploadForm").submit(function (e) {
     });
 });
 
-$("#saveFileForm").submit(function (e) {
-  e.preventDefault();
+// $("#saveFileForm").submit(function (e) {
+//   e.preventDefault();
+//   const formData = new FormData();
+//   formData.append("hashId", $("#hashId").val().trim());
+//   formData.append(
+//     "metamaskAddress",
+//     $("#saveFileMetamaskAddress").val().trim()
+//   );
+//   fetch("/dashboard/save-files", {method: "POST", body: formData})
+//     .then((response) => response.json())
+//     .then((data) => {
+//       const blob = new Blob([Buffer.from(data["file-data"], "base64")], {
+//         type: "octet-stream",
+//       });
+//       const href = URL.createObjectURL(blob);
+//       const a = Object.assign(document.createElement("a"), {
+//         href,
+//         style: "display:none",
+//         download: data["file-name"],
+//       });
+//       document.body.appendChild(a);
+//       a.click();
+//       URL.revokeObjectURL(href);
+//       a.remove();
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//     });
+// });
+
+function renderFiles() {
   const formData = new FormData();
-  formData.append("hashId", $("#hashId").val().trim());
-  formData.append(
-    "metamaskAddress",
-    $("#saveFileMetamaskAddress").val().trim()
-  );
-  fetch("/dashboard/save", {method: "POST", body: formData})
+  formData.append("metamaskAddress", accounts);
+  fetch("/dashboard/render-files", {method: "POST", body: formData})
     .then((response) => response.json())
     .then((data) => {
-      const blob = new Blob([Buffer.from(data["fileData"], "base64")], {
-        type: "octet-stream",
-      });
-      const href = URL.createObjectURL(blob);
-      const a = Object.assign(document.createElement("a"), {
-        href,
-        style: "display:none",
-        download: data["fileName"],
-      });
-      document.body.appendChild(a);
-      a.click();
-      URL.revokeObjectURL(href);
-      a.remove();
-    })
-    .catch((error) => {
-      console.log(error);
+      console.log(data);
+      for (let x = 0; x < data["number-of-files"]; x++) {
+        const image = Object.assign(document.createElement("img"), {
+          src: "https://via.placeholder.com/150",
+        });
+        image.setAttribute("data-hash-id", x);
+        image.setAttribute("data-metamask-address", accounts);
+        image.setAttribute("class", "renderedFile");
+        showFiles.appendChild(image);
+        // console.log(showFiles);
+      }
+      var files = document.querySelectorAll("img.renderedFile");
+      for (let q = 0; q < files.length; q++) {
+        files[q].addEventListener("click", getFiles);
+      }
     });
-});
+}
 
 function accountHandler(newAccount) {
   accounts = newAccount;
@@ -222,4 +248,32 @@ function printProvider(providerName) {
     provider.innerHTML = "Connected via " + providerName;
   }
 }
+
+function getFiles() {
+  // console.log(this.dataset.hashId, this.dataset.metamaskAddress);
+  const formData = new FormData();
+  formData.append("hashId", this.dataset.hashId);
+  formData.append("metamaskAddress", this.dataset.metamaskAddress);
+  fetch("/dashboard/save-files", {method: "POST", body: formData})
+    .then((response) => response.json())
+    .then((data) => {
+      const blob = new Blob([Buffer.from(data["file-data"], "base64")], {
+        type: "octet-stream",
+      });
+      const href = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement("a"), {
+        href,
+        style: "display:none",
+        download: data["file-name"],
+      });
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(href);
+      a.remove();
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}
+
 //#endregion

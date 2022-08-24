@@ -16,23 +16,40 @@ db = Database()
 def renderIndex(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.post("/dashboard/upload")
-async def handleUpload(metamaskAddress: str = Form(...), uploadFile: UploadFile = File(...)):
+@app.post("/dashboard/upload-files")
+async def handleUploadFiles(metamaskAddress: str = Form(...), uploadFile: UploadFile = File(...)):
     try:
+        # chunk = 1024  # 500mb chunk
+        # data = b""
+        # while(byte := await uploadFile.read(chunk)):
+        #     data = data + byte
+        # print(multiprocessing.cpu_count())
+        # data = await uploadFile.read()
         data = await uploadFile.read()
         db.insertFile(metamaskAddress, data, uploadFile.filename)
     except Exception as e:
         return {"message": f"{e}"}
     finally:
         await uploadFile.close()
-    return {"file_name": uploadFile.filename, "metamask_address": metamaskAddress}
+        return {"file_name": uploadFile.filename, "metamask_address": metamaskAddress}
 
-@app.post("/dashboard/save")
-async def handleSave(hashId: int = Form(...), metamaskAddress: str = Form(...)):
+# @app.post("/dashboard/save-files/")
+# async def handleSaveFiles(hashId: int = Form(...), metamaskAddress: str = Form(...)):
+#     data = db.getFile(hashId, metamaskAddress)
+#     jsonifyData = jsonable_encoder(data, custom_encoder={
+#         bytes: lambda v: base64.b64encode(v).decode('utf-8')})
+#     return jsonifyData
+@app.post("/dashboard/save-files/")
+async def handleSaveFiles(hashId: int = Form(...), metamaskAddress: str = Form(...)):
     data = db.getFile(hashId, metamaskAddress)
     jsonifyData = jsonable_encoder(data, custom_encoder={
         bytes: lambda v: base64.b64encode(v).decode('utf-8')})
     return jsonifyData
+
+@app.post("/dashboard/render-files")
+async def handleRenderFiles(metamaskAddress: str = Form(...)):
+    renderFiles = db.renderFiles(metamaskAddress)
+    return renderFiles
 
 if __name__ == "__main__":
     uvicorn.run("backend:app", host="127.0.0.1", port=5000, log_level="info", reload=True)

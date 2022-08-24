@@ -28,8 +28,15 @@ class Database:
     def getFile(this, hashId:int, metamaskAddress:str): #Saves file to a certain location
         fileData = this.__getFileData(hashId, metamaskAddress)
         fileName = this.__getFileName(hashId, metamaskAddress)
-        result = {"fileData": fileData, "fileName" : fileName}
+        result = {"file-data": fileData, "file-name" : fileName}
         return result
+    
+    def renderFiles(this, metamaskAddress:str):
+        numberOfFiles = this.__dynamicallyAllocateHashId(metamaskAddress)
+        renderFiles = {"number-of-files": numberOfFiles}
+        for x in range(0,numberOfFiles):
+            renderFiles[x] = this.__getFileName(x,metamaskAddress)
+        return renderFiles
 
     #private functions
     def __connectDatabase(this):
