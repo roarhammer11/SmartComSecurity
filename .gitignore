@@ -5,4 +5,4 @@ node_modules
 package-lock.json
 dist/__pycache__
 dist/package/__pycache__
-restart port 5000.bat
+restart port 80.bat

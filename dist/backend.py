@@ -33,12 +33,6 @@ async def handleUploadFiles(metamaskAddress: str = Form(...), uploadFile: Upload
         await uploadFile.close()
         return {"file_name": uploadFile.filename, "metamask_address": metamaskAddress}
 
-# @app.post("/dashboard/save-files/")
-# async def handleSaveFiles(hashId: int = Form(...), metamaskAddress: str = Form(...)):
-#     data = db.getFile(hashId, metamaskAddress)
-#     jsonifyData = jsonable_encoder(data, custom_encoder={
-#         bytes: lambda v: base64.b64encode(v).decode('utf-8')})
-#     return jsonifyData
 @app.post("/dashboard/save-files/")
 async def handleSaveFiles(hashId: int = Form(...), metamaskAddress: str = Form(...)):
     data = db.getFile(hashId, metamaskAddress)
@@ -52,6 +46,6 @@ async def handleRenderFiles(metamaskAddress: str = Form(...)):
     return renderFiles
 
 if __name__ == "__main__":
-    uvicorn.run("backend:app", host="127.0.0.1", port=5000, log_level="info", reload=True)
+    uvicorn.run("backend:app", host="127.0.0.1", port=80, log_level="info", reload=True)
     
 

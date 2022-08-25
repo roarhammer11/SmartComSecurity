@@ -11,12 +11,7 @@ const selectFile = document.getElementById("selectFile");
 const uploadFormSubmit = document.getElementById("uploadFormSubmit");
 const uploadFileButton = document.getElementById("uploadFileButton");
 const uploadMetamaskAddressButton = document.getElementById("metamaskAddress");
-const saveFile = document.getElementById("saveFile");
-const saveFileMetamaskAddress = document.getElementById(
-  "saveFileMetamaskAddress"
-);
 const showFiles = document.getElementById("showFiles");
-const saveFileFormSubmit = document.getElementById("saveFileFormSubmit");
 const provider = document.getElementById("connectedProvider");
 const accountAddress = document.getElementById("accountAddress");
 const modalButton = document.getElementById("modalButton");
@@ -81,11 +76,6 @@ const initialize = async () => {
     };
   };
 
-  // saveFile.onclick = async () => {
-  //   saveFileMetamaskAddress.value = accounts;
-  //   saveFileFormSubmit.click();
-  // };
-
   if (injected) {
     ethereum.autoRefreshOnNetworkChange = false;
     networkAlertButton.onclick = () => {
@@ -132,36 +122,6 @@ $("#uploadForm").submit(function (e) {
       console.log(error);
     });
 });
-
-// $("#saveFileForm").submit(function (e) {
-//   e.preventDefault();
-//   const formData = new FormData();
-//   formData.append("hashId", $("#hashId").val().trim());
-//   formData.append(
-//     "metamaskAddress",
-//     $("#saveFileMetamaskAddress").val().trim()
-//   );
-//   fetch("/dashboard/save-files", {method: "POST", body: formData})
-//     .then((response) => response.json())
-//     .then((data) => {
-//       const blob = new Blob([Buffer.from(data["file-data"], "base64")], {
-//         type: "octet-stream",
-//       });
-//       const href = URL.createObjectURL(blob);
-//       const a = Object.assign(document.createElement("a"), {
-//         href,
-//         style: "display:none",
-//         download: data["file-name"],
-//       });
-//       document.body.appendChild(a);
-//       a.click();
-//       URL.revokeObjectURL(href);
-//       a.remove();
-//     })
-//     .catch((error) => {
-//       console.log(error);
-//     });
-// });
 
 function renderFiles() {
   const formData = new FormData();
@@ -250,7 +210,6 @@ function printProvider(providerName) {
 }
 
 function getFiles() {
-  // console.log(this.dataset.hashId, this.dataset.metamaskAddress);
   const formData = new FormData();
   formData.append("hashId", this.dataset.hashId);
   formData.append("metamaskAddress", this.dataset.metamaskAddress);
