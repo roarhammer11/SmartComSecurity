@@ -19,21 +19,69 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   </head>
   <body>
+    <nav class="navbar navbar-expand-lg bg-light">
+      <div class="container-fluid">
+        logo
+        <div class="d-flex justify-content-center">
+          <div id="connectedProvider"></div>
+          <button
+            id="networkAlert"
+            class="btn"
+            style="
+              display: none;
+              --bs-btn-bg: #f8d7da;
+              --bs-btn-hover-bg: #f7c3c9;
+              --bs-btn-hover-border-color: #f7c3c9;
+              --bs-btn-active-bg: #f7c3c9;
+              --bs-btn-active-border-color: #f7c3c9;
+            "
+          >
+            <img
+              src="static/icons/alert-red.svg"
+              style="padding-right: 0.2rem; margin-bottom: 0.2rem"
+            />
+            You are not connected to the Binance Smart Chain Mainnet network,<br />
+            click here to add it to your Web3 Provider.
+          </button>
+        </div>
+        <div class="d-flex">
+          <div id="accountAddress"></div>
+        </div>
+      </div>
+    </nav>
     <main class="container-fluid">
       <section>
-        <button
-          type="button"
-          id="connectButton"
-          class="btn btn-lg btn-success position-absolute top-50 start-50 translate-middle"
-          style="
-            --bs-btn-padding-y: 1rem;
-            --bs-btn-padding-x: 5rem;
-            --bs-btn-font-size: 1rem;
-            margin-left: 1rem;
-          "
-        >
-          Connect Wallet
-        </button>
+        <form id="uploadForm">
+          <button
+            type="button"
+            id="selectFile"
+            class="btn btn-lg btn-success"
+            style="
+              --bs-btn-padding-y: 1rem;
+              --bs-btn-padding-x: 5rem;
+              --bs-btn-font-size: 1rem;
+              margin-left: 1rem;
+            "
+          >
+            Select File
+          </button>
+          <input
+            type="file"
+            name="uploadFile"
+            id="uploadFileButton"
+            style="display: none"
+          />
+          <input
+            type="text"
+            name="metamaskAddress"
+            id="metamaskAddress"
+            style="display: none"
+          />
+          <input type="submit" id="uploadFormSubmit" style="display: none" />
+        </form>
+        <br />
+        Save File
+        <div id="showFiles"></div>
         <button
           id="modalButton"
           class="btn btn-primary"

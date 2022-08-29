@@ -16,6 +16,10 @@ db = Database()
 def renderIndex(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+@app.get("/dashboard")
+def renderDashboard(request: Request):
+    return templates.TemplateResponse("dashboard.html",{"request": request})
+
 @app.post("/dashboard/upload-files")
 async def handleUploadFiles(metamaskAddress: str = Form(...), uploadFile: UploadFile = File(...)):
     try:
