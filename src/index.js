@@ -19,6 +19,10 @@ const metamaskInstallButton = document.getElementById("metamask");
 const networkAlertButton = document.getElementById("networkAlert");
 const mathWalletInstallButton = document.getElementById("mathWallet");
 const binanceWalletInstallButton = document.getElementById("binanceWallet");
+const notConnected = document.getElementById("notConnected");
+const storeData = document.getElementById("storeData");
+const retrieveData = document.getElementById("retrieveData");
+const transaction = document.getElementById("transaction");
 const injected = window.ethereum;
 let accounts;
 let onboarding;
@@ -26,6 +30,8 @@ let onboarding;
 
 //#region Initialization
 const initialize = async () => {
+  notConnected.style.display = "none";
+  console.log(injected.selectedAddress);
   try {
     onboarding = new MetaMaskOnboarding();
   } catch (error) {
@@ -75,30 +81,39 @@ const initialize = async () => {
       uploadFormSubmit.click();
     };
   };
-
-  if (injected) {
+  if (injected != null) {
     ethereum.autoRefreshOnNetworkChange = false;
     networkAlertButton.onclick = () => {
       redirectPage("https://chainlist.org");
     };
-
     try {
       const newAccounts = await ethereum.request({
         method: "eth_accounts",
       });
       accountHandler(newAccounts);
       providerCheckHandler();
-      console.log(window.ethereum);
     } catch (error) {
       alert(error);
     }
-
+    console.log("hehe");
     checkNetwork();
     ethereum.on("chainChanged", (chain) => {
       chainNetworkHandler(chain);
     });
 
-    renderFiles();
+    retrieveData.onclick = async () => {
+      if (
+        injected.selectedAddress !== null &&
+        !retrieveData.classList.contains("active")
+      ) {
+        retrieveData.classList.add("active");
+        renderFiles();
+      }
+    };
+  }
+
+  if (injected.selectedAddress === null) {
+    notConnected.style.display = "block";
   }
 };
 
@@ -137,6 +152,7 @@ function renderFiles() {
         image.setAttribute("data-hash-id", x);
         image.setAttribute("data-metamask-address", accounts);
         image.setAttribute("class", "renderedFile");
+        showFiles.style.display = "block";
         showFiles.appendChild(image);
         // console.log(showFiles);
       }

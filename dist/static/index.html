@@ -45,25 +45,25 @@
           </button>
         </div>
         <div class="d-flex">
-          <div id="accountAddress"></div>
+          <div id="accountAddress" class="mt-2"></div>
+          <button
+            type="button"
+            id="connectButton"
+            class="btn btn-success"
+            style="
+              --bs-btn-padding-y: 8px;
+              --bs-btn-padding-x: 24px;
+              --bs-btn-font-size: 1rem;
+              margin-left: 1rem;
+            "
+          >
+            Connect Wallet
+          </button>
         </div>
       </div>
     </nav>
     <main class="container-fluid">
       <section>
-        <button
-          type="button"
-          id="connectButton"
-          class="btn btn-lg btn-success"
-          style="
-            --bs-btn-padding-y: 1rem;
-            --bs-btn-padding-x: 5rem;
-            --bs-btn-font-size: 1rem;
-            margin-left: 1rem;
-          "
-        >
-          Connect Wallet
-        </button>
         <form id="uploadForm">
           <button
             type="button"
@@ -74,6 +74,7 @@
               --bs-btn-padding-x: 5rem;
               --bs-btn-font-size: 1rem;
               margin-left: 1rem;
+              display: none;
             "
           >
             Select File
@@ -92,8 +93,44 @@
           />
           <input type="submit" id="uploadFormSubmit" style="display: none" />
         </form>
-        <br />
-        Save File
+        <div
+          class="btn-group btn-group-lg d-flex justify-content-center pb-2"
+          role="group"
+          aria-label="Large button group"
+        >
+          <button
+            id="storeData"
+            type="button"
+            class="btn btn-outline-dark"
+            style="max-width: 15rem"
+          >
+            Store Data
+          </button>
+          <button
+            id="retrieveData"
+            type="button"
+            class="btn btn-outline-dark"
+            style="max-width: 15rem"
+          >
+            Retrieve Data
+          </button>
+          <button
+            id="transaction"
+            type="button"
+            class="btn btn-outline-dark"
+            style="max-width: 15rem"
+          >
+            Transaction
+          </button>
+        </div>
+
+        <div class="container-xxl border border-dark" style="height: 45rem">
+          <div id="notConnected" style="display: none">
+            Please connect your wallet to activate this page!
+          </div>
+          <div id="showFiles" style="display: none"></div>
+        </div>
+
         <!-- <form id="saveFileForm">
           <input type="number" name="hashId" id="hashId" />
           <button id="saveFile">Save File</button>
@@ -110,7 +147,7 @@
             onclick="this.disabled=true;"
           />
         </form> -->
-        <div id="showFiles"></div>
+
         <button
           id="modalButton"
           class="btn btn-primary"
@@ -169,6 +206,6 @@
         </div>
       </section>
     </main>
-    <script src="static/javascript/main.js" defer></script>
+    <script src="static/javascript/main.js"></script>
   </body>
 </html>
