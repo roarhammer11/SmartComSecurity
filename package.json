@@ -2,6 +2,7 @@
   "dependencies": {
     "@metamask/onboarding": "^1.0.1",
     "buffer": "^6.0.3",
+    "ethers": "^5.7.1",
     "lodash": "^4.17.21",
     "webpack": "^5.74.0"
   },

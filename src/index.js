@@ -2,6 +2,9 @@
 import MetaMaskOnboarding from "@metamask/onboarding";
 import _ from "lodash";
 import {Buffer} from "buffer";
+import {ethers} from "ethers";
+import {sha256} from "ethers/lib/utils";
+//import "./blockchain.js";
 //#endregion
 
 //#region Global Variables
@@ -24,14 +27,14 @@ const storeData = document.getElementById("storeData");
 const retrieveData = document.getElementById("retrieveData");
 const transaction = document.getElementById("transaction");
 const injected = window.ethereum;
-let accounts;
+let currentAccount;
+let currentIndex;
 let onboarding;
 //#endregion
 
 //#region Initialization
 const initialize = async () => {
   notConnected.style.display = "none";
-  console.log(injected.selectedAddress);
   try {
     onboarding = new MetaMaskOnboarding();
   } catch (error) {
@@ -62,10 +65,12 @@ const initialize = async () => {
   connectButton.onclick = async () => {
     if (typeof window.ethereum !== "undefined") {
       try {
-        accounts = await ethereum.request({method: "eth_requestAccounts"});
-        accountAddress.innerHTML = accounts[0];
+        let accounts = await ethereum.request({method: "eth_requestAccounts"});
+        currentAccount = accounts[0];
+        accountAddress.innerHTML = currentAccount;
         providerCheckHandler();
         checkNetwork();
+        notConnected.style.display = "none";
       } catch (error) {
         alert(error.message);
       }
@@ -75,7 +80,7 @@ const initialize = async () => {
   };
 
   selectFile.onclick = async () => {
-    uploadMetamaskAddressButton.value = accounts;
+    uploadMetamaskAddressButton.value = currentAccount;
     uploadFileButton.click();
     uploadFileButton.onchange = (e) => {
       uploadFormSubmit.click();
@@ -95,7 +100,6 @@ const initialize = async () => {
     } catch (error) {
       alert(error);
     }
-    console.log("hehe");
     checkNetwork();
     ethereum.on("chainChanged", (chain) => {
       chainNetworkHandler(chain);
@@ -107,7 +111,43 @@ const initialize = async () => {
         !retrieveData.classList.contains("active")
       ) {
         retrieveData.classList.add("active");
+        storeData.classList.remove("active");
+        transaction.classList.remove("active");
+        selectFile.style.display = "none";
         renderFiles();
+      }
+    };
+
+    storeData.onclick = async () => {
+      if (
+        injected.selectedAddress !== null &&
+        !storeData.classList.contains("active")
+      ) {
+        retrieveData.classList.remove("active");
+        storeData.classList.add("active");
+        transaction.classList.remove("active");
+        showFiles.style.display = "none";
+        selectFile.style.display = "block";
+        while (showFiles.hasChildNodes()) {
+          showFiles.removeChild(showFiles.firstChild);
+        }
+      }
+    };
+
+    transaction.onclick = async () => {
+      if (
+        injected.selectedAddress !== null &&
+        !transaction.classList.contains("active")
+      ) {
+        retrieveData.classList.remove("active");
+        storeData.classList.remove("active");
+        transaction.classList.add("active");
+        showFiles.style.display = "none";
+        selectFile.style.display = "none";
+        while (showFiles.hasChildNodes()) {
+          showFiles.removeChild(showFiles.firstChild);
+        }
+        test();
       }
     };
   }
@@ -115,6 +155,7 @@ const initialize = async () => {
   if (injected.selectedAddress === null) {
     notConnected.style.display = "block";
   }
+  console.log(currentAccount);
 };
 
 window.addEventListener("load", initialize);
@@ -138,9 +179,11 @@ $("#uploadForm").submit(function (e) {
     });
 });
 
+//functions
+
 function renderFiles() {
   const formData = new FormData();
-  formData.append("metamaskAddress", accounts);
+  formData.append("metamaskAddress", currentAccount);
   fetch("/dashboard/render-files", {method: "POST", body: formData})
     .then((response) => response.json())
     .then((data) => {
@@ -150,7 +193,7 @@ function renderFiles() {
           src: "https://via.placeholder.com/150",
         });
         image.setAttribute("data-hash-id", x);
-        image.setAttribute("data-metamask-address", accounts);
+        image.setAttribute("data-metamask-address", currentAccount);
         image.setAttribute("class", "renderedFile");
         showFiles.style.display = "block";
         showFiles.appendChild(image);
@@ -164,8 +207,8 @@ function renderFiles() {
 }
 
 function accountHandler(newAccount) {
-  accounts = newAccount;
-  accountAddress.innerHTML = accounts;
+  currentAccount = newAccount[0];
+  accountAddress.innerHTML = currentAccount;
 }
 
 async function checkNetwork() {
@@ -180,7 +223,7 @@ async function checkNetwork() {
 }
 
 function chainNetworkHandler(chainId) {
-  if (accounts && accounts.length > 0 && chainId !== "0x38") {
+  if (currentAccount != null && chainId !== "0x38") {
     networkAlertButton.style.display = "block";
   } else {
     networkAlertButton.style.display = "none";
@@ -220,7 +263,7 @@ function redirectPage(page) {
 }
 
 function printProvider(providerName) {
-  if (accounts && accounts.length > 0) {
+  if (currentAccount != null) {
     provider.innerHTML = "Connected via " + providerName;
   }
 }
@@ -249,6 +292,45 @@ function getFiles() {
     .catch((error) => {
       console.log(error);
     });
+}
+
+function test() {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  fetch(
+    "https://api-testnet.bscscan.com/api?module=contract&action=getabi&address=0xe121D71fA17198f6F7aD1aFf939b422fD7D26Fae&apikey=JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95"
+  )
+    .then((x) => x.json())
+    .then((y) => smartContract(y));
+  async function smartContract(data) {
+    var smartCon = JSON.parse(data.result);
+    const signer = provider.getSigner();
+    var contract = new ethers.Contract(
+      "0xe121D71fA17198f6F7aD1aFf939b422fD7D26Fae",
+      smartCon,
+      signer
+    );
+    //contract.getPreviousBlockHash().then((y) => sha256Salted(y));
+    var previousBlockHash = await contract.getPreviousBlockHash();
+    console.log(previousBlockHash);
+    let saltedHash = sha256(
+      "0x68656C6C6F20776F726C64" + previousBlockHash.substring(2)
+    );
+    console.log(saltedHash);
+    // contract.getCurrentIndex(currentAccount).then((e) => setCurrentIndex(e));
+    // function setCurrentIndex(index) {
+    //   currentIndex = parseInt(index, 16) - 1;
+    //   //console.log(typeof currentIndex);
+    // }
+    contract.StoreHash(saltedHash, previousBlockHash);
+    // console.log(currentIndex);
+    // contract
+    //   .getHashStructureData(currentAccount, currentIndex.valueOf())
+    //   .then((x) => console.log(x));
+  }
+
+  function sha256Salted(previousBlockHash) {
+    console.log("0x68656C6C6F20776F726C64" + previousBlockHash);
+  }
 }
 
 //#endregion

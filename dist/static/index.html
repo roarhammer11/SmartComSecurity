@@ -64,35 +64,6 @@
     </nav>
     <main class="container-fluid">
       <section>
-        <form id="uploadForm">
-          <button
-            type="button"
-            id="selectFile"
-            class="btn btn-lg btn-success"
-            style="
-              --bs-btn-padding-y: 1rem;
-              --bs-btn-padding-x: 5rem;
-              --bs-btn-font-size: 1rem;
-              margin-left: 1rem;
-              display: none;
-            "
-          >
-            Select File
-          </button>
-          <input
-            type="file"
-            name="uploadFile"
-            id="uploadFileButton"
-            style="display: none"
-          />
-          <input
-            type="text"
-            name="metamaskAddress"
-            id="metamaskAddress"
-            style="display: none"
-          />
-          <input type="submit" id="uploadFormSubmit" style="display: none" />
-        </form>
         <div
           class="btn-group btn-group-lg d-flex justify-content-center pb-2"
           role="group"
@@ -123,8 +94,36 @@
             Transaction
           </button>
         </div>
-
         <div class="container-xxl border border-dark" style="height: 45rem">
+          <form id="uploadForm">
+            <button
+              type="button"
+              id="selectFile"
+              class="btn btn-lg btn-success"
+              style="
+                --bs-btn-padding-y: 1rem;
+                --bs-btn-padding-x: 5rem;
+                --bs-btn-font-size: 1rem;
+                margin-left: 1rem;
+                display: none;
+              "
+            >
+              Select File
+            </button>
+            <input
+              type="file"
+              name="uploadFile"
+              id="uploadFileButton"
+              style="display: none"
+            />
+            <input
+              type="text"
+              name="metamaskAddress"
+              id="metamaskAddress"
+              style="display: none"
+            />
+            <input type="submit" id="uploadFormSubmit" style="display: none" />
+          </form>
           <div id="notConnected" style="display: none">
             Please connect your wallet to activate this page!
           </div>
