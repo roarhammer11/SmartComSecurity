@@ -17,8 +17,3 @@ function test() {
   }
 }
 
-// function getLockedROFI(data) {
-//   var lockedRofiValue = data.toString() / 10 ** 18;
-//   console.log(lockedRofiValue);
-//   localStorage.setItem("lockedRofiValue", lockedRofiValue);
-// }

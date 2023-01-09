@@ -188,22 +188,53 @@ function renderFiles() {
     .then((response) => response.json())
     .then((data) => {
       console.log(data);
+      let filesToLoad = 10;
+      let pagination = 1;
       for (let x = 0; x < data["number-of-files"]; x++) {
+        const fileContainer = document.createElement("div");
+        const fileName = document.createElement("p");
         const image = Object.assign(document.createElement("img"), {
           src: "https://via.placeholder.com/150",
         });
         image.setAttribute("data-hash-id", x);
         image.setAttribute("data-metamask-address", currentAccount);
         image.setAttribute("class", "renderedFile");
+        fileName.innerHTML = data[x];
+        if (x == filesToLoad) {
+          pagination++;
+          filesToLoad *= 2;
+        }
+        fileContainer.setAttribute("id", pagination);
+        if (pagination > 1) {
+          fileContainer.style.display = "none";
+        } else {
+          fileContainer.setAttribute(
+            "class",
+            "d-flex flex-wrap flex-column m-5 active"
+          );
+        }
+        image.style.maxHeight = "150px";
+        image.style.maxWidth = "150px";
+        fileContainer.style.width = "150px";
+        image.style.cursor = "pointer";
+        fileName.style.cursor = "pointer";
+        fileContainer.appendChild(image);
+        fileContainer.appendChild(fileName);
         showFiles.style.display = "block";
-        showFiles.appendChild(image);
+        showFiles.appendChild(fileContainer);
         // console.log(showFiles);
       }
+      pagnation(showFiles, pagination);
       var files = document.querySelectorAll("img.renderedFile");
       for (let q = 0; q < files.length; q++) {
         files[q].addEventListener("click", getFiles);
       }
     });
+}
+
+function pagnation(files, pagination) {
+  var parentElement = files.parentElement;
+  
 }
 
 function accountHandler(newAccount) {
@@ -223,7 +254,11 @@ async function checkNetwork() {
 }
 
 function chainNetworkHandler(chainId) {
-  if (currentAccount != null && chainId !== "0x38") {
+  if (currentAccount != null && chainId === "0x61") {
+    networkAlertButton.style.display = "block";
+    networkAlertButton.innerHTML =
+      "You are connected to Binance Smart Chain Testnet";
+  } else if (currentAccount != null && chainId !== "0x38") {
     networkAlertButton.style.display = "block";
   } else {
     networkAlertButton.style.display = "none";
