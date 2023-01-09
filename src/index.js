@@ -26,6 +26,7 @@ const notConnected = document.getElementById("notConnected");
 const storeData = document.getElementById("storeData");
 const retrieveData = document.getElementById("retrieveData");
 const transaction = document.getElementById("transaction");
+const paginationElement = document.getElementById("pagination");
 const injected = window.ethereum;
 let currentAccount;
 let currentIndex;
@@ -128,6 +129,7 @@ const initialize = async () => {
         transaction.classList.remove("active");
         showFiles.style.display = "none";
         selectFile.style.display = "block";
+        paginationElement.style.display = "none";
         while (showFiles.hasChildNodes()) {
           showFiles.removeChild(showFiles.firstChild);
         }
@@ -144,6 +146,7 @@ const initialize = async () => {
         transaction.classList.add("active");
         showFiles.style.display = "none";
         selectFile.style.display = "none";
+        paginationElement.style.display = "none";
         while (showFiles.hasChildNodes()) {
           showFiles.removeChild(showFiles.firstChild);
         }
@@ -187,7 +190,7 @@ function renderFiles() {
   fetch("/dashboard/render-files", {method: "POST", body: formData})
     .then((response) => response.json())
     .then((data) => {
-      console.log(data);
+      // console.log(data);
       let filesToLoad = 10;
       let pagination = 1;
       for (let x = 0; x < data["number-of-files"]; x++) {
@@ -204,13 +207,14 @@ function renderFiles() {
           pagination++;
           filesToLoad *= 2;
         }
-        fileContainer.setAttribute("id", pagination);
+        // fileContainer.setAttribute("class", "f-" + pagination);
         if (pagination > 1) {
+          fileContainer.setAttribute("class", "f-" + pagination);
           fileContainer.style.display = "none";
         } else {
           fileContainer.setAttribute(
             "class",
-            "d-flex flex-wrap flex-column m-5 active"
+            "d-flex flex-wrap flex-column m-5 active f-" + pagination
           );
         }
         image.style.maxHeight = "150px";
@@ -233,8 +237,48 @@ function renderFiles() {
 }
 
 function pagnation(files, pagination) {
-  var parentElement = files.parentElement;
-  
+  paginationElement.style.display = "block";
+  // console.log(files);
+  for (let i = 1; i <= pagination; i++) {
+    const paginationList = document.createElement("li");
+    const paginationLink = document.createElement("a");
+    if (i == 1) {
+      paginationList.setAttribute("class", "page-item active");
+    } else {
+      paginationList.setAttribute("class", "page-item");
+    }
+    paginationLink.setAttribute("class", "page-link");
+    paginationLink.setAttribute("href", "#");
+    paginationLink.innerHTML = i;
+    paginationList.appendChild(paginationLink);
+    const element = paginationElement.querySelectorAll("ul")[0];
+    if (element.childElementCount - 2 < pagination) {
+      element.insertBefore(paginationList, element.lastElementChild);
+    }
+    paginationList.addEventListener("click", setFilesActive);
+    paginationList.files = files;
+  }
+}
+function setFilesActive(e) {
+  const files = e.currentTarget.files;
+  const clickedTab = e.target;
+  // console.log(files);
+  const activeFiles = files.querySelectorAll(".active");
+  for (var i = 0; i < activeFiles.length; i++) {
+    const fileClass = activeFiles[i].classList[5];
+    activeFiles[i].removeAttribute("class");
+    activeFiles[i].setAttribute("class", fileClass);
+    activeFiles[i].style.display = "none";
+  }
+  const toActivateFiles = files.querySelectorAll(".f-" + clickedTab.innerHTML);
+  // console.log(toActivateFiles[0]);
+  for (var x = 0; x < toActivateFiles.length; x++) {
+    // toActivateFiles[i].removeAttribute("class");
+    toActivateFiles[x].setAttribute(
+      "class",
+      "d-flex flex-wrap flex-column m-5 active f-" + clickedTab.innerHTML
+    );
+  }
 }
 
 function accountHandler(newAccount) {

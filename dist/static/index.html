@@ -132,24 +132,29 @@
             class="d-flex flex-wrap"
             style="display: none"
           ></div>
+          <nav
+            id="pagination"
+            style="
+              display: none;
+              position: absolute;
+              bottom: 8rem;
+              margin-left: 35rem;
+            "
+          >
+            <ul class="pagination justify-content-center">
+              <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="#" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
         </div>
-
-        <!-- <form id="saveFileForm">
-          <input type="number" name="hashId" id="hashId" />
-          <button id="saveFile">Save File</button>
-          <input
-            type="text"
-            name="saveFileMetamaskAddress"
-            id="saveFileMetamaskAddress"
-            style="display: none"
-          />
-          <input
-            type="submit"
-            id="saveFileFormSubmit"
-            style="display: none"
-            onclick="this.disabled=true;"
-          />
-        </form> -->
 
         <button
           id="modalButton"
