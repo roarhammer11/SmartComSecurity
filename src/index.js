@@ -120,15 +120,10 @@ const initialize = async () => {
     };
 
     storeData.onclick = async () => {
-      if (
-        injected.selectedAddress !== null
-        // !storeData.classList.contains("active")
-      ) {
+      if (injected.selectedAddress !== null) {
         retrieveData.classList.remove("active");
-        // storeData.classList.add("active");
         transaction.classList.remove("active");
         showFiles.style.display = "none";
-        // selectFile.style.display = "block";
         selectFile.click();
         paginationElement.style.display = "none";
         while (showFiles.hasChildNodes()) {
@@ -151,7 +146,7 @@ const initialize = async () => {
         while (showFiles.hasChildNodes()) {
           showFiles.removeChild(showFiles.firstChild);
         }
-        test();
+        // test();
       }
     };
   }
@@ -263,8 +258,10 @@ function pagnation(files, pagination) {
 function setFilesActive(e) {
   const files = e.currentTarget.files;
   const clickedTab = e.target;
-  // console.log(files);
+  const activePaginationTab = e.currentTarget;
+  const paginationList = e.currentTarget.parentElement;
   const activeFiles = files.querySelectorAll(".active");
+  setPaginationLinkActive(activePaginationTab, paginationList);
   for (var i = 0; i < activeFiles.length; i++) {
     const fileClass = activeFiles[i].classList[5];
     activeFiles[i].removeAttribute("class");
@@ -272,14 +269,17 @@ function setFilesActive(e) {
     activeFiles[i].style.display = "none";
   }
   const toActivateFiles = files.querySelectorAll(".f-" + clickedTab.innerHTML);
-  // console.log(toActivateFiles[0]);
   for (var x = 0; x < toActivateFiles.length; x++) {
-    // toActivateFiles[i].removeAttribute("class");
     toActivateFiles[x].setAttribute(
       "class",
       "d-flex flex-wrap flex-column m-5 active f-" + clickedTab.innerHTML
     );
   }
+}
+
+function setPaginationLinkActive(activePaginationTab, paginationList){
+  paginationList.querySelector(".active").classList.remove("active");
+  activePaginationTab.setAttribute("class", "active");
 }
 
 function accountHandler(newAccount) {
