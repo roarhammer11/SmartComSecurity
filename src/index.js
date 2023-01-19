@@ -121,14 +121,15 @@ const initialize = async () => {
 
     storeData.onclick = async () => {
       if (
-        injected.selectedAddress !== null &&
-        !storeData.classList.contains("active")
+        injected.selectedAddress !== null
+        // !storeData.classList.contains("active")
       ) {
         retrieveData.classList.remove("active");
-        storeData.classList.add("active");
+        // storeData.classList.add("active");
         transaction.classList.remove("active");
         showFiles.style.display = "none";
-        selectFile.style.display = "block";
+        // selectFile.style.display = "block";
+        selectFile.click();
         paginationElement.style.display = "none";
         while (showFiles.hasChildNodes()) {
           showFiles.removeChild(showFiles.firstChild);
