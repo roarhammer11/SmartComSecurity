@@ -222,7 +222,6 @@ function renderFiles() {
         fileContainer.appendChild(fileName);
         showFiles.style.display = "block";
         showFiles.appendChild(fileContainer);
-        // console.log(showFiles);
       }
       pagnation(showFiles, pagination);
       var files = document.querySelectorAll("img.renderedFile");
@@ -234,7 +233,12 @@ function renderFiles() {
 
 function pagnation(files, pagination) {
   paginationElement.style.display = "block";
-  // console.log(files);
+  while (paginationElement.hasChildNodes()) {
+    paginationElement.removeChild(paginationElement.firstChild);
+  }
+  // const element = paginationElement.querySelectorAll("ul")[0];
+  const element = createPagniationLinks();
+  console.log(element);
   for (let i = 1; i <= pagination; i++) {
     const paginationList = document.createElement("li");
     const paginationLink = document.createElement("a");
@@ -247,13 +251,43 @@ function pagnation(files, pagination) {
     paginationLink.setAttribute("href", "#");
     paginationLink.innerHTML = i;
     paginationList.appendChild(paginationLink);
-    const element = paginationElement.querySelectorAll("ul")[0];
     if (element.childElementCount - 2 < pagination) {
       element.insertBefore(paginationList, element.lastElementChild);
     }
     paginationList.addEventListener("click", setFilesActive);
     paginationList.files = files;
   }
+  paginationElement.appendChild(element);
+}
+
+function createPagniationLinks() {
+  const container = document.createElement("ul");
+  const previousLinkList = document.createElement("li");
+  const nextLinkList = document.createElement("li");
+  const previousLink = document.createElement("a");
+  const nextLink = document.createElement("a");
+  const previousIcon = document.createElement("span");
+  const nextIcon = document.createElement("span");
+  container.setAttribute("class", "pagination justfy-content-center");
+  previousLinkList.setAttribute("class", "page-item disabled");
+  nextLinkList.setAttribute("class", "page-item");
+  previousLink.setAttribute("class", "page-link");
+  previousLink.href = "#";
+  previousLink.setAttribute("aria-label", "Previous");
+  nextLink.setAttribute("class", "page-link");
+  nextLink.href = "#";
+  nextLink.setAttribute("aria-label", "Next");
+  previousIcon.setAttribute("aria-hidden", "true");
+  previousIcon.innerHTML = "&laquo;";
+  nextIcon.setAttribute("aria-hidden", "true");
+  nextIcon.innerHTML = "&raquo;";
+  previousLink.appendChild(previousIcon);
+  previousLinkList.appendChild(previousLink);
+  nextLink.appendChild(nextIcon);
+  nextLinkList.appendChild(nextLink);
+  container.appendChild(previousLinkList);
+  container.appendChild(nextLinkList);
+  return container;
 }
 function setFilesActive(e) {
   const files = e.currentTarget.files;
@@ -277,7 +311,7 @@ function setFilesActive(e) {
   }
 }
 
-function setPaginationLinkActive(activePaginationTab, paginationList){
+function setPaginationLinkActive(activePaginationTab, paginationList) {
   paginationList.querySelector(".active").classList.remove("active");
   activePaginationTab.setAttribute("class", "active");
 }
