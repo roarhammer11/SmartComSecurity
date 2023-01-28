@@ -238,7 +238,6 @@ function pagnation(files, pagination) {
   }
   // const element = paginationElement.querySelectorAll("ul")[0];
   const element = createPagniationLinks();
-  console.log(element);
   for (let i = 1; i <= pagination; i++) {
     const paginationList = document.createElement("li");
     const paginationLink = document.createElement("a");
@@ -257,7 +256,55 @@ function pagnation(files, pagination) {
     paginationList.addEventListener("click", setFilesActive);
     paginationList.files = files;
   }
+  paginationArrowHandler(element);
   paginationElement.appendChild(element);
+}
+
+function paginationArrowHandler(element) {
+  const previous = element.firstChild;
+  const next = element.lastElementChild;
+  // previous.style.pointerEvents = "none";
+  next.addEventListener("click", handleNextEventListener);
+  next.element = element;
+
+  previous.addEventListener("click", handlePreviousEventListener);
+  previous.element = element;
+}
+
+function handleNextEventListener(e) {
+  const activeElement = e.currentTarget.element.querySelector(".active");
+  const nextElement = activeElement.nextElementSibling;
+  if (nextElement.nextElementSibling != null) {
+    if (nextElement.nextElementSibling.id == "next") {
+      nextElement.click();
+      next.classList.add("disabled");
+      // next.style.pointerEvents = "none";
+      // next.removeEventListener("click", handleNextEventListener);
+    } else if (activeElement.previousElementSibling.id == "previous") {
+      nextElement.click();
+      previous.classList.remove("disabled");
+    } else {
+      nextElement.click();
+    }
+  }
+}
+
+function handlePreviousEventListener(e) {
+  const activeElement = e.currentTarget.element.querySelector(".active");
+  const previousElement = activeElement.previousElementSibling;
+  if (previousElement.previousElementSibling != null) {
+    if (previousElement.previousElementSibling.id == "previous") {
+      previousElement.click();
+      previous.classList.add("disabled");
+      // next.style.pointerEvents = "none";
+      // previous.removeEventListener("click", handlePreviousEventListener);
+    } else if (activeElement.nextElementSibling.id == "next") {
+      previousElement.click();
+      next.classList.remove("disabled");
+    } else {
+      previousElement.click();
+    }
+  }
 }
 
 function createPagniationLinks() {
@@ -270,7 +317,9 @@ function createPagniationLinks() {
   const nextIcon = document.createElement("span");
   container.setAttribute("class", "pagination justfy-content-center");
   previousLinkList.setAttribute("class", "page-item disabled");
+  previousLinkList.setAttribute("id", "previous");
   nextLinkList.setAttribute("class", "page-item");
+  nextLinkList.setAttribute("id", "next");
   previousLink.setAttribute("class", "page-link");
   previousLink.href = "#";
   previousLink.setAttribute("aria-label", "Previous");
@@ -289,9 +338,11 @@ function createPagniationLinks() {
   container.appendChild(nextLinkList);
   return container;
 }
+
 function setFilesActive(e) {
   const files = e.currentTarget.files;
-  const clickedTab = e.target;
+  const clickedTab =
+    e.target.tagName == "LI" ? e.target.lastElementChild : e.target;
   const activePaginationTab = e.currentTarget;
   const paginationList = e.currentTarget.parentElement;
   const activeFiles = files.querySelectorAll(".active");
@@ -314,6 +365,16 @@ function setFilesActive(e) {
 function setPaginationLinkActive(activePaginationTab, paginationList) {
   paginationList.querySelector(".active").classList.remove("active");
   activePaginationTab.setAttribute("class", "active");
+  if(activePaginationTab.previousElementSibling.id == "previous"){
+    document.getElementById("previous").classList.add("disabled");
+    document.getElementById("next").classList.remove("disabled");
+  } else if(activePaginationTab.nextElementSibling.id == "next"){
+    document.getElementById("next").classList.add("disabled");
+    document.getElementById("previous").classList.remove("disabled");
+  }else{
+    document.getElementById("previous").classList.remove("disabled");
+    document.getElementById("next").classList.remove("disabled");
+  }
 }
 
 function accountHandler(newAccount) {
