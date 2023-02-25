@@ -146,7 +146,7 @@ const initialize = async () => {
         while (showFiles.hasChildNodes()) {
           showFiles.removeChild(showFiles.firstChild);
         }
-        // test();
+        test();
       }
     };
   }
@@ -365,13 +365,13 @@ function setFilesActive(e) {
 function setPaginationLinkActive(activePaginationTab, paginationList) {
   paginationList.querySelector(".active").classList.remove("active");
   activePaginationTab.setAttribute("class", "active");
-  if(activePaginationTab.previousElementSibling.id == "previous"){
+  if (activePaginationTab.previousElementSibling.id == "previous") {
     document.getElementById("previous").classList.add("disabled");
     document.getElementById("next").classList.remove("disabled");
-  } else if(activePaginationTab.nextElementSibling.id == "next"){
+  } else if (activePaginationTab.nextElementSibling.id == "next") {
     document.getElementById("next").classList.add("disabled");
     document.getElementById("previous").classList.remove("disabled");
-  }else{
+  } else {
     document.getElementById("previous").classList.remove("disabled");
     document.getElementById("next").classList.remove("disabled");
   }
@@ -472,7 +472,7 @@ function getFiles() {
 function test() {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   fetch(
-    "https://api-testnet.bscscan.com/api?module=contract&action=getabi&address=0xe121D71fA17198f6F7aD1aFf939b422fD7D26Fae&apikey=JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95"
+    "https://api-testnet.bscscan.com/api?module=contract&action=getabi&address=0x8B13e5cdA78fE99000E662278C5345dCeE7e689E&apikey=JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95"
   )
     .then((x) => x.json())
     .then((y) => smartContract(y));
@@ -480,32 +480,23 @@ function test() {
     var smartCon = JSON.parse(data.result);
     const signer = provider.getSigner();
     var contract = new ethers.Contract(
-      "0xe121D71fA17198f6F7aD1aFf939b422fD7D26Fae",
+      "0x8B13e5cdA78fE99000E662278C5345dCeE7e689E",
       smartCon,
       signer
     );
-    //contract.getPreviousBlockHash().then((y) => sha256Salted(y));
-    var previousBlockHash = await contract.getPreviousBlockHash();
-    console.log(previousBlockHash);
+    var randomPreviousBlockHash = await contract.getRandomPreviousBlockHash(Math.floor(Math.random() * 9999999));
+    console.log("Previous Block Hash: " + randomPreviousBlockHash);
     let saltedHash = sha256(
-      "0x68656C6C6F20776F726C64" + previousBlockHash.substring(2)
+      "0x68656C6C6F20776F726C64" + randomPreviousBlockHash.substring(2)
     );
-    console.log(saltedHash);
-    // contract.getCurrentIndex(currentAccount).then((e) => setCurrentIndex(e));
-    // function setCurrentIndex(index) {
-    //   currentIndex = parseInt(index, 16) - 1;
-    //   //console.log(typeof currentIndex);
-    // }
-    contract.StoreHash(saltedHash, previousBlockHash);
-    // console.log(currentIndex);
-    // contract
-    //   .getHashStructureData(currentAccount, currentIndex.valueOf())
-    //   .then((x) => console.log(x));
+    console.log("Salted Hash: " + saltedHash);
   }
+  //0x5819b811F788AF2c9558eB031D87E259e7D9533A previous contract
+  // 0x8B13e5cdA78fE99000E662278C5345dCeE7e689E new contract
 
-  function sha256Salted(previousBlockHash) {
-    console.log("0x68656C6C6F20776F726C64" + previousBlockHash);
-  }
+  // function sha256Salted(previousBlockHash) {
+  //   console.log("0x68656C6C6F20776F726C64" + previousBlockHash);
+  // }
 }
 
 //#endregion
