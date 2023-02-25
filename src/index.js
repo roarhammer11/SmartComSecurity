@@ -167,8 +167,24 @@ $("#uploadForm").submit(function (e) {
   for (const f of file) {
     formData.append("uploadFile", f);
   }
+  convertFileToHex(file);
+  fetch("/dashboard/upload-files", {method: "POST", body: formData})
+    .then((response) => response.json())
+    .then((data) => {
+      alert("Successfuly saved " + data.file_name + " to the database.");
+      document.getElementById("uploadForm").reset();
+      // console.log(data);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+});
+
+//functions
+//converts file to hexadecimal format
+function convertFileToHex(file) {
   var reader = new FileReader();
-  reader.addEventListener("load", function () {   //converts file to hexadecimal format
+  reader.addEventListener("load", function () {
     var hexaDecimalString = "0x";
     var u = new Uint8Array(this.result),
       a = new Array(u.length),
@@ -185,19 +201,7 @@ $("#uploadForm").submit(function (e) {
     test(hexaDecimalString);
   });
   reader.readAsArrayBuffer(file[0]);
-  fetch("/dashboard/upload-files", {method: "POST", body: formData})
-    .then((response) => response.json())
-    .then((data) => {
-      alert("Successfuly saved " + data.file_name + " to the database.");
-      console.log(data);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-});
-
-//functions
-
+}
 function renderFiles() {
   const formData = new FormData();
   formData.append("metamaskAddress", currentAccount);
