@@ -146,7 +146,7 @@ const initialize = async () => {
         while (showFiles.hasChildNodes()) {
           showFiles.removeChild(showFiles.firstChild);
         }
-        test();
+        //test();
       }
     };
   }
@@ -167,6 +167,24 @@ $("#uploadForm").submit(function (e) {
   for (const f of file) {
     formData.append("uploadFile", f);
   }
+  var reader = new FileReader();
+  reader.addEventListener("load", function () {   //converts file to hexadecimal format
+    var hexaDecimalString = "0x";
+    var u = new Uint8Array(this.result),
+      a = new Array(u.length),
+      i = u.length;
+    while (i--)
+      // map to hex
+      a[i] = (u[i] < 16 ? "0" : "") + u[i].toString(16);
+    u = null; // free memory
+    // console.log(a); // work with this
+    for (var i = 0; i < a.length; i++) {
+      hexaDecimalString = hexaDecimalString.concat(a[i].toUpperCase());
+    }
+    console.log("Hex File: " + hexaDecimalString);
+    test(hexaDecimalString);
+  });
+  reader.readAsArrayBuffer(file[0]);
   fetch("/dashboard/upload-files", {method: "POST", body: formData})
     .then((response) => response.json())
     .then((data) => {
@@ -469,7 +487,7 @@ function getFiles() {
     });
 }
 
-function test() {
+function test(binaryData) {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   fetch(
     "https://api-testnet.bscscan.com/api?module=contract&action=getabi&address=0x8B13e5cdA78fE99000E662278C5345dCeE7e689E&apikey=JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95"
@@ -484,11 +502,15 @@ function test() {
       smartCon,
       signer
     );
-    var randomPreviousBlockHash = await contract.getRandomPreviousBlockHash(Math.floor(Math.random() * 9999999));
-    console.log("Previous Block Hash: " + randomPreviousBlockHash);
-    let saltedHash = sha256(
-      "0x68656C6C6F20776F726C64" + randomPreviousBlockHash.substring(2)
+    var randomPreviousBlockHash = await contract.getRandomPreviousBlockHash(
+      Math.floor(Math.random() * 9999999)
     );
+    console.log("Previous Block Hash: " + randomPreviousBlockHash);
+    // let saltedHash = sha256(
+    //   "0x68656C6C6F20776F726C64" + randomPreviousBlockHash.substring(2)
+
+    // );
+    let saltedHash = sha256(binaryData + randomPreviousBlockHash.substring(2));
     console.log("Salted Hash: " + saltedHash);
   }
   //0x5819b811F788AF2c9558eB031D87E259e7D9533A previous contract
