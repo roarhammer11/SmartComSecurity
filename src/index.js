@@ -331,7 +331,10 @@ function createPagniationLinks() {
   const nextLink = document.createElement("a");
   const previousIcon = document.createElement("span");
   const nextIcon = document.createElement("span");
-  container.setAttribute("class", "pagination justify-content-center");
+  container.setAttribute(
+    "class",
+    "pagination justify-content-center"
+  );
   previousLinkList.setAttribute("class", "page-item disabled");
   previousLinkList.setAttribute("id", "previous");
   nextLinkList.setAttribute("class", "page-item");
