@@ -146,7 +146,6 @@ const initialize = async () => {
         while (showFiles.hasChildNodes()) {
           showFiles.removeChild(showFiles.firstChild);
         }
-        //test();
       }
     };
   }
@@ -198,7 +197,7 @@ function convertFileToHex(file) {
       hexaDecimalString = hexaDecimalString.concat(a[i].toUpperCase());
     }
     console.log("Hex File: " + hexaDecimalString);
-    test(hexaDecimalString);
+    getSaltedHashValue(hexaDecimalString);
   });
   reader.readAsArrayBuffer(file[0]);
 }
@@ -221,9 +220,8 @@ function renderFiles() {
         image.setAttribute("data-metamask-address", currentAccount);
         image.setAttribute("class", "renderedFile");
         fileName.innerHTML = data[x];
-        if (x == filesToLoad) {
+        if (x != 0 && x % filesToLoad == 0) {
           pagination++;
-          filesToLoad *= 2;
         }
         // fileContainer.setAttribute("class", "f-" + pagination);
         if (pagination > 1) {
@@ -300,8 +298,6 @@ function handleNextEventListener(e) {
     if (nextElement.nextElementSibling.id == "next") {
       nextElement.click();
       next.classList.add("disabled");
-      // next.style.pointerEvents = "none";
-      // next.removeEventListener("click", handleNextEventListener);
     } else if (activeElement.previousElementSibling.id == "previous") {
       nextElement.click();
       previous.classList.remove("disabled");
@@ -318,8 +314,6 @@ function handlePreviousEventListener(e) {
     if (previousElement.previousElementSibling.id == "previous") {
       previousElement.click();
       previous.classList.add("disabled");
-      // next.style.pointerEvents = "none";
-      // previous.removeEventListener("click", handlePreviousEventListener);
     } else if (activeElement.nextElementSibling.id == "next") {
       previousElement.click();
       next.classList.remove("disabled");
@@ -337,7 +331,7 @@ function createPagniationLinks() {
   const nextLink = document.createElement("a");
   const previousIcon = document.createElement("span");
   const nextIcon = document.createElement("span");
-  container.setAttribute("class", "pagination justfy-content-center");
+  container.setAttribute("class", "pagination justify-content-center");
   previousLinkList.setAttribute("class", "page-item disabled");
   previousLinkList.setAttribute("id", "previous");
   nextLinkList.setAttribute("class", "page-item");
@@ -376,6 +370,7 @@ function setFilesActive(e) {
     activeFiles[i].style.display = "none";
   }
   const toActivateFiles = files.querySelectorAll(".f-" + clickedTab.innerHTML);
+  console.log(toActivateFiles);
   for (var x = 0; x < toActivateFiles.length; x++) {
     toActivateFiles[x].setAttribute(
       "class",
@@ -491,7 +486,7 @@ function getFiles() {
     });
 }
 
-function test(binaryData) {
+function getSaltedHashValue(binaryData) {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   fetch(
     "https://api-testnet.bscscan.com/api?module=contract&action=getabi&address=0x8B13e5cdA78fE99000E662278C5345dCeE7e689E&apikey=JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95"
