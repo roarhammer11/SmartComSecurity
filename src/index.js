@@ -29,7 +29,6 @@ const transaction = document.getElementById("transaction");
 const paginationElement = document.getElementById("pagination");
 const injected = window.ethereum;
 let currentAccount;
-let currentIndex;
 let onboarding;
 //#endregion
 
@@ -158,7 +157,7 @@ const initialize = async () => {
 
 window.addEventListener("load", initialize);
 
-$("#uploadForm").submit(function (e) {
+$("#uploadForm").submit(async function (e) {
   e.preventDefault();
   const file = uploadFileButton.files;
   const formData = new FormData();
@@ -166,7 +165,11 @@ $("#uploadForm").submit(function (e) {
   for (const f of file) {
     formData.append("uploadFile", f);
   }
-  convertFileToHex(file);
+  const contract = await getSmartContract();
+  // console.log(contract);
+  convertFileToHex(file, contract);
+  const currentIndex = getCurrentFileIndex(contract);
+  //console.log(index);
   fetch("/dashboard/upload-files", {method: "POST", body: formData})
     .then((response) => response.json())
     .then((data) => {
@@ -181,7 +184,7 @@ $("#uploadForm").submit(function (e) {
 
 //functions
 //converts file to hexadecimal format
-function convertFileToHex(file) {
+function convertFileToHex(file, contract) {
   var reader = new FileReader();
   reader.addEventListener("load", function () {
     var hexaDecimalString = "0x";
@@ -197,7 +200,7 @@ function convertFileToHex(file) {
       hexaDecimalString = hexaDecimalString.concat(a[i].toUpperCase());
     }
     console.log("Hex File: " + hexaDecimalString);
-    getSaltedHashValue(hexaDecimalString);
+    getSaltedHashValue(hexaDecimalString, contract);
   });
   reader.readAsArrayBuffer(file[0]);
 }
@@ -331,10 +334,7 @@ function createPagniationLinks() {
   const nextLink = document.createElement("a");
   const previousIcon = document.createElement("span");
   const nextIcon = document.createElement("span");
-  container.setAttribute(
-    "class",
-    "pagination justify-content-center"
-  );
+  container.setAttribute("class", "pagination justify-content-center");
   previousLinkList.setAttribute("class", "page-item disabled");
   previousLinkList.setAttribute("id", "previous");
   nextLinkList.setAttribute("class", "page-item");
@@ -373,7 +373,6 @@ function setFilesActive(e) {
     activeFiles[i].style.display = "none";
   }
   const toActivateFiles = files.querySelectorAll(".f-" + clickedTab.innerHTML);
-  console.log(toActivateFiles);
   for (var x = 0; x < toActivateFiles.length; x++) {
     toActivateFiles[x].setAttribute(
       "class",
@@ -463,6 +462,7 @@ function printProvider(providerName) {
   }
 }
 
+//gets files from the database
 function getFiles() {
   const formData = new FormData();
   formData.append("hashId", this.dataset.hashId);
@@ -489,38 +489,42 @@ function getFiles() {
     });
 }
 
-function getSaltedHashValue(binaryData) {
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
-  fetch(
-    "https://api-testnet.bscscan.com/api?module=contract&action=getabi&address=0x8B13e5cdA78fE99000E662278C5345dCeE7e689E&apikey=JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95"
-  )
-    .then((x) => x.json())
-    .then((y) => smartContract(y));
-  async function smartContract(data) {
-    var smartCon = JSON.parse(data.result);
-    const signer = provider.getSigner();
-    var contract = new ethers.Contract(
-      "0x8B13e5cdA78fE99000E662278C5345dCeE7e689E",
-      smartCon,
-      signer
-    );
-    var randomPreviousBlockHash = await contract.getRandomPreviousBlockHash(
-      Math.floor(Math.random() * 9999999)
-    );
-    console.log("Previous Block Hash: " + randomPreviousBlockHash);
-    // let saltedHash = sha256(
-    //   "0x68656C6C6F20776F726C64" + randomPreviousBlockHash.substring(2)
-
-    // );
-    let saltedHash = sha256(binaryData + randomPreviousBlockHash.substring(2));
-    console.log("Salted Hash: " + saltedHash);
-  }
+async function getSaltedHashValue(file, contract) {
+  var randomPreviousBlockHash = await getRandomPreviousBlockHash(contract);
+  let saltedHash = sha256(file + randomPreviousBlockHash.substring(2));
+  console.log("Salted Hash: " + saltedHash);
   //0x5819b811F788AF2c9558eB031D87E259e7D9533A previous contract
   // 0x8B13e5cdA78fE99000E662278C5345dCeE7e689E new contract
+}
 
-  // function sha256Salted(previousBlockHash) {
-  //   console.log("0x68656C6C6F20776F726C64" + previousBlockHash);
-  // }
+async function getSmartContract() {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  var contractPromise = await fetch(
+    "https://api-testnet.bscscan.com/api?module=contract&action=getabi&address=0x8B13e5cdA78fE99000E662278C5345dCeE7e689E&apikey=JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95"
+  );
+  var contractJson = await contractPromise.json();
+  var smartCon = JSON.parse(contractJson.result);
+  const signer = provider.getSigner();
+  var contract = new ethers.Contract(
+    "0x8B13e5cdA78fE99000E662278C5345dCeE7e689E",
+    smartCon,
+    signer
+  );
+  return contract;
+}
+
+async function getCurrentFileIndex(contract) {
+  const index = await contract.getCurrentIndex(accountAddress.innerHTML);
+  console.log("Index of Salted Hash in blockchain: ", index.toNumber());
+  return index;
+}
+
+async function getRandomPreviousBlockHash(contract) {
+  const randomPreviousBlockHash = await contract.getRandomPreviousBlockHash(
+    Math.floor(Math.random() * 9999999)
+  );
+  console.log("Previous Block Hash: " + randomPreviousBlockHash);
+  return randomPreviousBlockHash;
 }
 
 //#endregion

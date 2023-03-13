@@ -117,10 +117,4 @@ class Database:
         finally:
             conn.close()
         return parsedResult
-
-
-
 #endregion
-#insertFile(filePath, 1)
-#dynamicallyAllocateHashId(3)
-#print(getBinaryData(files))
