@@ -167,22 +167,13 @@ $("#uploadForm").submit(async function (e) {
   }
   const contract = await getSmartContract();
   const currentIndex = await getCurrentFileIndex(contract);
-  convertFileToHex(file, contract);
   formData.append("fileIndex", currentIndex);
-  fetch("/dashboard/upload-files", {method: "POST", body: formData})
-    .then((response) => response.json())
-    .then((data) => {
-      alert("Successfuly saved " + data.file_name + " to the database.");
-      document.getElementById("uploadForm").reset();
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+  convertFileToHex(file, contract, formData);
 });
 
 //functions
 //converts file to hexadecimal format
-function convertFileToHex(file, contract) {
+function convertFileToHex(file, contract, formData) {
   var reader = new FileReader();
   reader.addEventListener("load", async function () {
     var hexaDecimalString = "0x";
@@ -198,7 +189,7 @@ function convertFileToHex(file, contract) {
       hexaDecimalString = hexaDecimalString.concat(a[i].toUpperCase());
     }
     console.log("Hex File: " + hexaDecimalString);
-    getSaltedHashValue(hexaDecimalString, contract);
+    getSaltedHashValue(hexaDecimalString, contract, formData);
   });
   reader.readAsArrayBuffer(file[0]);
 }
@@ -486,11 +477,11 @@ function getFiles() {
     });
 }
 
-async function getSaltedHashValue(file, contract) {
+async function getSaltedHashValue(file, contract, formData) {
   var randomPreviousBlockHash = await getRandomPreviousBlockHash(contract);
   let saltedHash = sha256(file + randomPreviousBlockHash.substring(2));
   console.log("Salted Hash: " + saltedHash);
-  saveToBlockchain(saltedHash, randomPreviousBlockHash, contract);
+  saveToBlockchain(saltedHash, randomPreviousBlockHash, contract, formData);
 }
 
 async function getSmartContract() {
@@ -523,8 +514,27 @@ async function getRandomPreviousBlockHash(contract) {
   return randomPreviousBlockHash;
 }
 
-async function saveToBlockchain(saltedHashValue, previousBlockHash, contract) {
-  contract.StoreHash(saltedHashValue, previousBlockHash);
+async function saveToBlockchain(
+  saltedHashValue,
+  previousBlockHash,
+  contract,
+  formData
+) {
+  contract.StoreHash(saltedHashValue, previousBlockHash).then(() => {
+    uploadFile(formData);
+  });
+}
+
+function uploadFile(formData) {
+  fetch("/dashboard/upload-files", {method: "POST", body: formData})
+    .then((response) => response.json())
+    .then((data) => {
+      alert("Successfuly saved " + data.file_name + " to the database.");
+      document.getElementById("uploadForm").reset();
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 }
 
 //#endregion
