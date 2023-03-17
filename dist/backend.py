@@ -17,7 +17,7 @@ def renderIndex(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/dashboard/upload-files")
-async def handleUploadFiles(metamaskAddress: str = Form(...), uploadFile: UploadFile = File(...)):
+async def handleUploadFiles(metamaskAddress: str = Form(...), uploadFile: UploadFile = File(...), fileIndex: str = Form(...)):
     try:
         # chunk = 1024  # 500mb chunk
         # data = b""
@@ -26,7 +26,7 @@ async def handleUploadFiles(metamaskAddress: str = Form(...), uploadFile: Upload
         # print(multiprocessing.cpu_count())
         # data = await uploadFile.read()
         data = await uploadFile.read()
-        db.insertFile(metamaskAddress, data, uploadFile.filename)
+        db.insertFile(metamaskAddress, data, uploadFile.filename, fileIndex)
     except Exception as e:
         return {"message": f"{e}"}
     finally:

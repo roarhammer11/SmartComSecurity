@@ -9,13 +9,13 @@ import os
 #region Functions
 class Database:
 #public functions
-    def insertFile(this, metamaskAddress: str, fileData: bytes, fileName: str): #Inserts file to the database
+    def insertFile(this, metamaskAddress: str, fileData: bytes, fileName: str, hashId: int): #Inserts file to the database
         this.__createTables()
         conn = this.__connectDatabase()
         query = '''INSERT INTO Files(hashId, metamaskAddress, fileName, fileData)
                 VALUES(?,?,?,?)'''
         cursor = conn.cursor()
-        hashId = this.__dynamicallyAllocateHashId(metamaskAddress)
+        # hashId = this.__dynamicallyAllocateHashId(metamaskAddress)
         tupleData = (hashId, metamaskAddress, fileName, fileData)
         try:
             cursor.execute(query, tupleData)
@@ -32,7 +32,7 @@ class Database:
         return result
     
     def renderFiles(this, metamaskAddress:str):
-        numberOfFiles = this.__dynamicallyAllocateHashId(metamaskAddress)
+        numberOfFiles = this.__getNumberOfFiles(metamaskAddress)
         renderFiles = {"number-of-files": numberOfFiles}
         for x in range(0,numberOfFiles):
             renderFiles[x] = this.__getFileName(x,metamaskAddress)
@@ -79,18 +79,18 @@ class Database:
     #         print(e)
     #     return binaryData
 
-    def __dynamicallyAllocateHashId(this, metamaskAddress: str):
-        conn = this.__connectDatabase()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT COUNT(metamaskAddress) FROM Files WHERE metamaskAddress = ?",(metamaskAddress,))
-            result = cursor.fetchall()
-            parsedResult = result[0][0]
-        except Error as e:
-            print(e)
-        finally:
-            conn.close()
-        return parsedResult    
+    # def __dynamicallyAllocateHashId(this, metamaskAddress: str):
+    #     conn = this.__connectDatabase()
+    #     cursor = conn.cursor()
+    #     try:
+    #         cursor.execute("SELECT COUNT(metamaskAddress) FROM Files WHERE metamaskAddress = ?",(metamaskAddress,))
+    #         result = cursor.fetchall()
+    #         parsedResult = result[0][0]
+    #     except Error as e:
+    #         print(e)
+    #     finally:
+    #         conn.close()
+    #     return parsedResult    
 
     def __getFileData(this, hashId: int, metamaskAddress: str):
         conn = this.__connectDatabase()
@@ -117,4 +117,17 @@ class Database:
         finally:
             conn.close()
         return parsedResult
+    
+    def __getNumberOfFiles(this, metamaskAddress: str):
+        conn = this.__connectDatabase()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT COUNT(*) FROM Files WHERE metamaskAddress = ?",(metamaskAddress))
+            result = cursor.fetchall()
+        except Error as e:
+            print(e)
+        finally:
+            conn.close()
+        return result
+        
 #endregion

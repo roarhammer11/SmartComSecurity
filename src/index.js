@@ -168,14 +168,14 @@ $("#uploadForm").submit(async function (e) {
   const contract = await getSmartContract();
   // console.log(contract);
   convertFileToHex(file, contract);
-  const currentIndex = getCurrentFileIndex(contract);
-  //console.log(index);
+  const currentIndex = await getCurrentFileIndex(contract);
+  // console.log(typeof currentIndex);
+  formData.append("fileIndex", currentIndex);
   fetch("/dashboard/upload-files", {method: "POST", body: formData})
     .then((response) => response.json())
     .then((data) => {
       alert("Successfuly saved " + data.file_name + " to the database.");
       document.getElementById("uploadForm").reset();
-      // console.log(data);
     })
     .catch((error) => {
       console.log(error);
