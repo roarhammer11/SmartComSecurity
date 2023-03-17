@@ -166,10 +166,8 @@ $("#uploadForm").submit(async function (e) {
     formData.append("uploadFile", f);
   }
   const contract = await getSmartContract();
-  // console.log(contract);
-  convertFileToHex(file, contract);
   const currentIndex = await getCurrentFileIndex(contract);
-  // console.log(typeof currentIndex);
+  convertFileToHex(file, contract);
   formData.append("fileIndex", currentIndex);
   fetch("/dashboard/upload-files", {method: "POST", body: formData})
     .then((response) => response.json())
@@ -186,7 +184,7 @@ $("#uploadForm").submit(async function (e) {
 //converts file to hexadecimal format
 function convertFileToHex(file, contract) {
   var reader = new FileReader();
-  reader.addEventListener("load", function () {
+  reader.addEventListener("load", async function () {
     var hexaDecimalString = "0x";
     var u = new Uint8Array(this.result),
       a = new Array(u.length),
@@ -286,7 +284,6 @@ function pagnation(files, pagination) {
 function paginationArrowHandler(element) {
   const previous = element.firstChild;
   const next = element.lastElementChild;
-  // previous.style.pointerEvents = "none";
   next.addEventListener("click", handleNextEventListener);
   next.element = element;
 
@@ -493,8 +490,7 @@ async function getSaltedHashValue(file, contract) {
   var randomPreviousBlockHash = await getRandomPreviousBlockHash(contract);
   let saltedHash = sha256(file + randomPreviousBlockHash.substring(2));
   console.log("Salted Hash: " + saltedHash);
-  //0x5819b811F788AF2c9558eB031D87E259e7D9533A previous contract
-  // 0x8B13e5cdA78fE99000E662278C5345dCeE7e689E new contract
+  saveToBlockchain(saltedHash, randomPreviousBlockHash, contract);
 }
 
 async function getSmartContract() {
@@ -525,6 +521,10 @@ async function getRandomPreviousBlockHash(contract) {
   );
   console.log("Previous Block Hash: " + randomPreviousBlockHash);
   return randomPreviousBlockHash;
+}
+
+async function saveToBlockchain(saltedHashValue, previousBlockHash, contract) {
+  contract.StoreHash(saltedHashValue, previousBlockHash);
 }
 
 //#endregion
