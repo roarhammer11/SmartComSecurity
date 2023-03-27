@@ -208,7 +208,7 @@ function renderFiles() {
         const image = Object.assign(document.createElement("img"), {
           src: "https://via.placeholder.com/150",
         });
-        image.setAttribute("data-hash-id", x);
+        image.setAttribute("data-hash-id", data["hashId"][x]);
         image.setAttribute("data-metamask-address", currentAccount);
         image.setAttribute("class", "renderedFile");
         fileName.innerHTML = data[x];
@@ -240,6 +240,9 @@ function renderFiles() {
       for (let q = 0; q < files.length; q++) {
         files[q].addEventListener("click", getFiles);
       }
+    })
+    .catch((error) => {
+      console.log(error);
     });
 }
 

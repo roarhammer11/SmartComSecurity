@@ -33,9 +33,10 @@ class Database:
     
     def renderFiles(this, metamaskAddress:str):
         numberOfFiles = this.__getNumberOfFiles(metamaskAddress)
-        renderFiles = {"number-of-files": numberOfFiles}
+        hashId = this.__getHashIdOfFiles(metamaskAddress)
+        renderFiles = {"number-of-files": numberOfFiles, "hashId": hashId}
         for x in range(0,numberOfFiles):
-            renderFiles[x] = this.__getFileName(x,metamaskAddress)
+            renderFiles[x] = this.__getFileName(hashId[x][0],metamaskAddress)
         return renderFiles
 
     #private functions
@@ -97,7 +98,10 @@ class Database:
         cursor = conn.cursor()
         try:
             cursor.execute("SELECT fileData FROM Files WHERE metamaskAddress = ? AND hashId = ?",(metamaskAddress, hashId))
+            print(hashId)
+            print(metamaskAddress)
             result = cursor.fetchall()
+            print(result)
             parsedResult = result[0][0]
         except Error as e:
             print(e)
@@ -110,7 +114,10 @@ class Database:
         cursor = conn.cursor()
         try:
             cursor.execute("SELECT fileName FROM Files WHERE metamaskAddress = ? AND hashId = ?",(metamaskAddress, hashId))
+            # print(hashId)
+            # print(metamaskAddress)
             result = cursor.fetchall()
+            # print(result)
             parsedResult = result[0][0]
         except Error as e:
             print(e)
@@ -122,7 +129,20 @@ class Database:
         conn = this.__connectDatabase()
         cursor = conn.cursor()
         try:
-            cursor.execute("SELECT COUNT(*) FROM Files WHERE metamaskAddress = ?",(metamaskAddress))
+            cursor.execute("SELECT COUNT(*) FROM Files WHERE metamaskAddress = ?",(metamaskAddress,))
+            result = cursor.fetchall()
+            parsedResult = result[0][0]
+        except Error as e:
+            print(e)
+        finally:
+            conn.close()
+        return parsedResult
+    
+    def __getHashIdOfFiles(this, metamaskAddress: str):
+        conn = this.__connectDatabase()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT hashId FROM Files WHERE metamaskAddress = ?", (metamaskAddress,))
             result = cursor.fetchall()
         except Error as e:
             print(e)
@@ -131,3 +151,6 @@ class Database:
         return result
         
 #endregion
+
+#TODO create function that would get hashId, filename, and filedata in one call
+#SELECT hashId, fileName, fileData FROM Files WHERE metamaskAddress = "0xcf8f73a7730464e2edae7cfb67ecea6b5b2c6462"
