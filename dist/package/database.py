@@ -98,10 +98,10 @@ class Database:
         cursor = conn.cursor()
         try:
             cursor.execute("SELECT fileData FROM Files WHERE metamaskAddress = ? AND hashId = ?",(metamaskAddress, hashId))
-            print(hashId)
-            print(metamaskAddress)
+            # print(hashId)
+            # print(metamaskAddress)
             result = cursor.fetchall()
-            print(result)
+            # print(result)
             parsedResult = result[0][0]
         except Error as e:
             print(e)
@@ -151,6 +151,3 @@ class Database:
         return result
         
 #endregion
-
-#TODO create function that would get hashId, filename, and filedata in one call
-#SELECT hashId, fileName, fileData FROM Files WHERE metamaskAddress = "0xcf8f73a7730464e2edae7cfb67ecea6b5b2c6462"
