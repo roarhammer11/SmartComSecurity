@@ -612,23 +612,44 @@ async function createTransactionTable(filteredTransaction) {
   for (const x in filteredTransaction) {
     const tRow = document.createElement("tr");
     const transactionHashCell = document.createElement("th");
+    const transactionHashLink =
+      "https://testnet.bscscan.com/tx/" + filteredTransaction[x]["hash"];
+    const a = document.createElement("a");
     const timeStampCell = document.createElement("td");
     const blockCell = document.createElement("td");
+    const blockNumberLink =
+      "https://testnet.bscscan.com/block/" +
+      filteredTransaction[x]["blockNumber"];
+    const b = document.createElement("a");
     const transactionFeeCell = document.createElement("td");
     const statusCell = document.createElement("td");
     const date = new Date(parseInt(filteredTransaction[x]["timeStamp"]) * 1000);
     const formattedDate =
       date.getHours() + ":" + date.getMinutes() + ", " + date.toDateString();
+
     transactionHashCell.setAttribute("scope", "row");
-    transactionHashCell.innerHTML = filteredTransaction[x]["hash"];
+    a.setAttribute("href", "#");
+    a.innerHTML = filteredTransaction[x]["hash"];
+    a.onclick = () => {
+      redirectPage(transactionHashLink);
+    };
+    transactionHashCell.appendChild(a);
+    // transactionHashCell.innerHTML = filteredTransaction[x]["hash"];
     timeStampCell.innerHTML = formattedDate;
-    blockCell.innerHTML = filteredTransaction[x]["blockNumber"];
+    // blockCell.innerHTML = filteredTransaction[x]["blockNumber"];
+    b.setAttribute("href", "#");
+    b.innerHTML = filteredTransaction[x]["blockNumber"];
+    b.onclick = () => {
+      redirectPage(blockNumberLink);
+    };
+    blockCell.appendChild(b);
     transactionFeeCell.innerHTML =
       ((filteredTransaction[x]["gasPrice"] *
         filteredTransaction[x]["gasUsed"]) /
         10 ** 18) *
       bnbPrice;
-    statusCell.innerHTML = filteredTransaction[x]["txreceipt_status"];
+    statusCell.innerHTML =
+      filteredTransaction[x]["txreceipt_status"] === "1" ? "OK" : "Error";
     tRow.appendChild(transactionHashCell);
     tRow.appendChild(timeStampCell);
     tRow.appendChild(blockCell);
