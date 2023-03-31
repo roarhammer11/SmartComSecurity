@@ -6,7 +6,9 @@ import {ethers} from "ethers";
 import {sha256} from "ethers/lib/utils";
 //import "./blockchain.js";
 //#endregion
-
+// Main Network : https://api.bscscan.com/
+let apiKey = "JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95";
+let contractAddress = "0x8B13e5cdA78fE99000E662278C5345dCeE7e689E";
 //#region Global Variables
 const {isMetaMaskInstalled} = MetaMaskOnboarding;
 const connectButton = document.getElementById("connectButton");
@@ -27,6 +29,7 @@ const storeData = document.getElementById("storeData");
 const retrieveData = document.getElementById("retrieveData");
 const transaction = document.getElementById("transaction");
 const paginationElement = document.getElementById("pagination");
+const transactionTableElement = document.getElementById("transaction-table");
 const injected = window.ethereum;
 let currentAccount;
 let onboarding;
@@ -100,7 +103,7 @@ const initialize = async () => {
     } catch (error) {
       alert(error);
     }
-    checkNetwork();
+    const chainId = await checkNetwork();
     ethereum.on("chainChanged", (chain) => {
       chainNetworkHandler(chain);
     });
@@ -113,8 +116,12 @@ const initialize = async () => {
         retrieveData.classList.add("active");
         storeData.classList.remove("active");
         transaction.classList.remove("active");
+        transactionTableElement.style.display = "none";
         selectFile.style.display = "none";
         renderFiles();
+        // while (transactionTableElement.hasChildNodes()) {
+        //   transactionTableElement.removeChild(transactionTableElement.firstChild);
+        // }
       }
     };
 
@@ -122,12 +129,16 @@ const initialize = async () => {
       if (injected.selectedAddress !== null) {
         retrieveData.classList.remove("active");
         transaction.classList.remove("active");
+        transactionTableElement.style.display = "none";
         showFiles.style.display = "none";
         selectFile.click();
         paginationElement.style.display = "none";
         while (showFiles.hasChildNodes()) {
           showFiles.removeChild(showFiles.firstChild);
         }
+        // while (transactionTableElement.hasChildNodes()) {
+        //   transactionTableElement.removeChild(transactionTableElement.firstChild);
+        // }
       }
     };
 
@@ -139,9 +150,11 @@ const initialize = async () => {
         retrieveData.classList.remove("active");
         storeData.classList.remove("active");
         transaction.classList.add("active");
+        transactionTableElement.style.display = "revert";
         showFiles.style.display = "none";
         selectFile.style.display = "none";
         paginationElement.style.display = "none";
+        retrieveTransactions(contractAddress, chainId, currentAccount);
         while (showFiles.hasChildNodes()) {
           showFiles.removeChild(showFiles.firstChild);
         }
@@ -165,7 +178,7 @@ $("#uploadForm").submit(async function (e) {
   for (const f of file) {
     formData.append("uploadFile", f);
   }
-  const contract = await getSmartContract();
+  const contract = await getSmartContract(contractAddress);
   const currentIndex = await getCurrentFileIndex(contract);
   formData.append("fileIndex", currentIndex);
   convertFileToHex(file, contract, formData);
@@ -389,18 +402,21 @@ function setPaginationLinkActive(activePaginationTab, paginationList) {
 
 function accountHandler(newAccount) {
   currentAccount = newAccount[0];
-  accountAddress.innerHTML = currentAccount;
+  accountAddress.innerHTML =
+    typeof currentAccount !== "undefined" ? currentAccount : " ";
 }
 
 async function checkNetwork() {
+  let chainId;
   try {
-    const chainId = await ethereum.request({
+    chainId = await ethereum.request({
       method: "eth_chainId",
     });
     chainNetworkHandler(chainId);
   } catch (error) {
     alert(error.message);
   }
+  return chainId;
 }
 
 function chainNetworkHandler(chainId) {
@@ -487,7 +503,7 @@ async function getSaltedHashValue(file, contract, formData) {
   saveToBlockchain(saltedHash, randomPreviousBlockHash, contract, formData);
 }
 
-async function getSmartContract() {
+async function getSmartContract(contractAddress) {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   var contractPromise = await fetch(
     "https://api-testnet.bscscan.com/api?module=contract&action=getabi&address=0x8B13e5cdA78fE99000E662278C5345dCeE7e689E&apikey=JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95"
@@ -495,11 +511,7 @@ async function getSmartContract() {
   var contractJson = await contractPromise.json();
   var smartCon = JSON.parse(contractJson.result);
   const signer = provider.getSigner();
-  var contract = new ethers.Contract(
-    "0x8B13e5cdA78fE99000E662278C5345dCeE7e689E",
-    smartCon,
-    signer
-  );
+  var contract = new ethers.Contract(contractAddress, smartCon, signer);
   return contract;
 }
 
@@ -540,4 +552,99 @@ function uploadFile(formData) {
     });
 }
 
+// function getTransactions
+
+async function retrieveTransactions(contractAddress, chainId, metamaskAddress) {
+  let network =
+    chainId === "0x38"
+      ? "https://api.bscscan.com/api?"
+      : "https://api-testnet.bscscan.com/api?";
+  let query =
+    network +
+    "module=account&action=txlist&address=" +
+    contractAddress +
+    "&startblock=0&endblock=99999999&sort=desc&apikey=" +
+    apiKey;
+
+  let transaction = await fetch(query);
+  let data = await transaction.json();
+  const filteredTransaction = filterTransaction(data, metamaskAddress);
+  console.log(filteredTransaction);
+  try {
+    console.log(transactionTableElement.children["1"].childElementCount);
+    console.log(filteredTransaction.length);
+    console.log(
+      transactionTableElement.children["1"].childElementCount <
+        filteredTransaction.length
+    );
+    if (
+      transactionTableElement.children["1"].childElementCount <
+      filteredTransaction.length
+    ) {
+      transactionTableElement.removeChild(
+        transactionTableElement.children["1"]
+      );
+      createTransactionTable(filteredTransaction);
+    }
+  } catch (e) {
+    createTransactionTable(filteredTransaction);
+  }
+}
+
+function filterTransaction(transactionData, metamaskAddress) {
+  //Filters transaction according to account and storehash function
+  var retVal = new Array();
+  for (const x in transactionData["result"]) {
+    if (
+      transactionData["result"][x]["from"] === metamaskAddress &&
+      transactionData["result"][x]["functionName"] ===
+        "StoreHash(bytes32 hashValue,bytes32 previousBlockHash)"
+    ) {
+      retVal.push(transactionData["result"][x]);
+    }
+  }
+  return retVal;
+}
+
+async function createTransactionTable(filteredTransaction) {
+  const tBody = document.createElement("tbody");
+  const bnbPrice = await retrieveBNBPriceinPHP();
+  for (const x in filteredTransaction) {
+    const tRow = document.createElement("tr");
+    const transactionHashCell = document.createElement("th");
+    const timeStampCell = document.createElement("td");
+    const blockCell = document.createElement("td");
+    const transactionFeeCell = document.createElement("td");
+    const statusCell = document.createElement("td");
+    const date = new Date(parseInt(filteredTransaction[x]["timeStamp"]));
+    const formattedDate =
+      date.getHours() + ":" + date.getMinutes() + ", " + date.toDateString();
+    transactionHashCell.setAttribute("scope", "row");
+    transactionHashCell.innerHTML = filteredTransaction[x]["hash"];
+    timeStampCell.innerHTML = formattedDate;
+    blockCell.innerHTML = filteredTransaction[x]["blockNumber"];
+    transactionFeeCell.innerHTML =
+      ((filteredTransaction[x]["gasPrice"] *
+        filteredTransaction[x]["gasUsed"]) /
+        10 ** 18) *
+      bnbPrice;
+    statusCell.innerHTML = filteredTransaction[x]["txreceipt_status"];
+    tRow.appendChild(transactionHashCell);
+    tRow.appendChild(timeStampCell);
+    tRow.appendChild(blockCell);
+    tRow.appendChild(transactionFeeCell);
+    tRow.appendChild(statusCell);
+    tBody.appendChild(tRow);
+  }
+  // transactionTableElement.appendChild(tHead);
+  transactionTableElement.appendChild(tBody);
+}
+
+async function retrieveBNBPriceinPHP() {
+  const query = await fetch(
+    "https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=php"
+  );
+  const bnbPriceResult = await query.json();
+  return bnbPriceResult["binancecoin"]["php"];
+}
 //#endregion
