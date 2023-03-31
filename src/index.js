@@ -616,7 +616,7 @@ async function createTransactionTable(filteredTransaction) {
     const blockCell = document.createElement("td");
     const transactionFeeCell = document.createElement("td");
     const statusCell = document.createElement("td");
-    const date = new Date(parseInt(filteredTransaction[x]["timeStamp"]));
+    const date = new Date(parseInt(filteredTransaction[x]["timeStamp"]) * 1000);
     const formattedDate =
       date.getHours() + ":" + date.getMinutes() + ", " + date.toDateString();
     transactionHashCell.setAttribute("scope", "row");
