@@ -153,7 +153,7 @@ const initialize = async () => {
         transactionTableElement.style.display = "revert";
         showFiles.style.display = "none";
         selectFile.style.display = "none";
-        paginationElement.style.display = "none";
+        paginationElement.style.display = "block";
         retrieveTransactions(contractAddress, chainId, currentAccount);
         while (showFiles.hasChildNodes()) {
           showFiles.removeChild(showFiles.firstChild);
@@ -214,7 +214,7 @@ function renderFiles() {
     .then((data) => {
       // console.log(data);
       let filesToLoad = 10;
-      let pagination = 1;
+      let paginationCount = 1;
       for (let x = 0; x < data["number-of-files"]; x++) {
         const fileContainer = document.createElement("div");
         const fileName = document.createElement("p");
@@ -226,16 +226,16 @@ function renderFiles() {
         image.setAttribute("class", "renderedFile");
         fileName.innerHTML = data[x];
         if (x != 0 && x % filesToLoad == 0) {
-          pagination++;
+          paginationCount++;
         }
         // fileContainer.setAttribute("class", "f-" + pagination);
-        if (pagination > 1) {
-          fileContainer.setAttribute("class", "f-" + pagination);
+        if (paginationCount > 1) {
+          fileContainer.setAttribute("class", "f-" + paginationCount);
           fileContainer.style.display = "none";
         } else {
           fileContainer.setAttribute(
             "class",
-            "d-flex flex-wrap flex-column m-5 active f-" + pagination
+            "d-flex flex-wrap flex-column m-5 active f-" + paginationCount
           );
         }
         image.style.maxHeight = "150px";
@@ -248,7 +248,8 @@ function renderFiles() {
         showFiles.style.display = "block";
         showFiles.appendChild(fileContainer);
       }
-      pagnation(showFiles, pagination);
+      pagination(showFiles, paginationCount);
+      console.log(showFiles);
       var files = document.querySelectorAll("img.renderedFile");
       for (let q = 0; q < files.length; q++) {
         files[q].addEventListener("click", getFiles);
@@ -259,14 +260,14 @@ function renderFiles() {
     });
 }
 
-function pagnation(files, pagination) {
+function pagination(files, paginationCount) {
   paginationElement.style.display = "block";
   while (paginationElement.hasChildNodes()) {
     paginationElement.removeChild(paginationElement.firstChild);
   }
   // const element = paginationElement.querySelectorAll("ul")[0];
   const element = createPagniationLinks();
-  for (let i = 1; i <= pagination; i++) {
+  for (let i = 1; i <= paginationCount; i++) {
     const paginationList = document.createElement("li");
     const paginationLink = document.createElement("a");
     if (i == 1) {
@@ -278,10 +279,15 @@ function pagnation(files, pagination) {
     paginationLink.setAttribute("href", "#");
     paginationLink.innerHTML = i;
     paginationList.appendChild(paginationLink);
-    if (element.childElementCount - 2 < pagination) {
+    if (element.childElementCount - 2 < paginationCount) {
       element.insertBefore(paginationList, element.lastElementChild);
     }
-    paginationList.addEventListener("click", setFilesActive);
+    if (files.tagName == "DIV") {
+      paginationList.addEventListener("click", setFilesActive);
+    } else {
+      paginationList.addEventListener("click", setTransactionActive);
+    }
+    console.log(files.tagName);
     paginationList.files = files;
   }
   paginationArrowHandler(element);
@@ -383,6 +389,33 @@ function setFilesActive(e) {
       "d-flex flex-wrap flex-column m-5 active f-" + clickedTab.innerHTML
     );
   }
+  console.log(files);
+}
+
+function setTransactionActive(e) {
+  const files = e.currentTarget.files;
+  const clickedTab =
+    e.target.tagName == "LI" ? e.target.lastElementChild : e.target;
+  const activePaginationTab = e.currentTarget;
+  const paginationList = e.currentTarget.parentElement;
+  console.log(paginationList);
+  const activeFiles = files.querySelectorAll(".active");
+  setPaginationLinkActive(activePaginationTab, paginationList);
+  for (var i = 0; i < activeFiles.length; i++) {
+    const fileClass = activeFiles[i].classList[1];
+    activeFiles[i].removeAttribute("class");
+    activeFiles[i].setAttribute("class", fileClass);
+    activeFiles[i].style.display = "none";
+  }
+  const toActivateFiles = files.querySelectorAll(".f-" + clickedTab.innerHTML);
+  for (var x = 0; x < toActivateFiles.length; x++) {
+    toActivateFiles[x].setAttribute(
+      "class",
+      "active f-" + clickedTab.innerHTML
+    );
+    toActivateFiles[x].style.display = "revert";
+  }
+  console.log(files);
 }
 
 function setPaginationLinkActive(activePaginationTab, paginationList) {
@@ -569,14 +602,11 @@ async function retrieveTransactions(contractAddress, chainId, metamaskAddress) {
   let transaction = await fetch(query);
   let data = await transaction.json();
   const filteredTransaction = filterTransaction(data, metamaskAddress);
+  console.log(transactionTableElement);
   console.log(filteredTransaction);
+
+  let paginationCount;
   try {
-    console.log(transactionTableElement.children["1"].childElementCount);
-    console.log(filteredTransaction.length);
-    console.log(
-      transactionTableElement.children["1"].childElementCount <
-        filteredTransaction.length
-    );
     if (
       transactionTableElement.children["1"].childElementCount <
       filteredTransaction.length
@@ -584,10 +614,19 @@ async function retrieveTransactions(contractAddress, chainId, metamaskAddress) {
       transactionTableElement.removeChild(
         transactionTableElement.children["1"]
       );
-      createTransactionTable(filteredTransaction);
+      paginationCount = await createTransactionTable(filteredTransaction);
+      localStorage.setItem("paginationCount", paginationCount);
+      pagination(transactionTableElement.children["1"], paginationCount);
+    } else {
+      pagination(
+        transactionTableElement.children["1"],
+        localStorage.getItem("paginationCount")
+      );
     }
   } catch (e) {
-    createTransactionTable(filteredTransaction);
+    paginationCount = await createTransactionTable(filteredTransaction);
+    localStorage.setItem("paginationCount", paginationCount);
+    pagination(transactionTableElement.children["1"], paginationCount);
   }
 }
 
@@ -609,6 +648,8 @@ function filterTransaction(transactionData, metamaskAddress) {
 async function createTransactionTable(filteredTransaction) {
   const tBody = document.createElement("tbody");
   const bnbPrice = await retrieveBNBPriceinPHP();
+  let filesToLoad = 14;
+  let paginationCount = 1;
   for (const x in filteredTransaction) {
     const tRow = document.createElement("tr");
     const transactionHashCell = document.createElement("th");
@@ -656,9 +697,19 @@ async function createTransactionTable(filteredTransaction) {
     tRow.appendChild(transactionFeeCell);
     tRow.appendChild(statusCell);
     tBody.appendChild(tRow);
+    if (x != 0 && x % filesToLoad == 0) {
+      paginationCount++;
+    }
+    // fileContainer.setAttribute("class", "f-" + pagination);
+    if (paginationCount > 1) {
+      tRow.setAttribute("class", "f-" + paginationCount);
+      tRow.style.display = "none";
+    } else {
+      tRow.setAttribute("class", "active f-" + paginationCount);
+    }
   }
-  // transactionTableElement.appendChild(tHead);
   transactionTableElement.appendChild(tBody);
+  return paginationCount;
 }
 
 async function retrieveBNBPriceinPHP() {
@@ -669,3 +720,5 @@ async function retrieveBNBPriceinPHP() {
   return bnbPriceResult["binancecoin"]["php"];
 }
 //#endregion
+
+//TODO create pagination of transaction
