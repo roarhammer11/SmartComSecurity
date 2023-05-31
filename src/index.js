@@ -265,7 +265,6 @@ function pagination(files, paginationCount) {
   while (paginationElement.hasChildNodes()) {
     paginationElement.removeChild(paginationElement.firstChild);
   }
-  // const element = paginationElement.querySelectorAll("ul")[0];
   const element = createPagniationLinks();
   for (let i = 1; i <= paginationCount; i++) {
     const paginationList = document.createElement("li");
@@ -604,7 +603,6 @@ async function retrieveTransactions(contractAddress, chainId, metamaskAddress) {
   const filteredTransaction = filterTransaction(data, metamaskAddress);
   console.log(transactionTableElement);
   console.log(filteredTransaction);
-
   let paginationCount;
   try {
     if (
@@ -615,17 +613,19 @@ async function retrieveTransactions(contractAddress, chainId, metamaskAddress) {
         transactionTableElement.children["1"]
       );
       paginationCount = await createTransactionTable(filteredTransaction);
-      localStorage.setItem("paginationCount", paginationCount);
+      sessionStorage.setItem("paginationCount", paginationCount);
       pagination(transactionTableElement.children["1"], paginationCount);
+      document.getElementsByClassName("pagination")[0].children["1"].click();
     } else {
       pagination(
         transactionTableElement.children["1"],
-        localStorage.getItem("paginationCount")
+        sessionStorage.getItem("paginationCount")
       );
+      document.getElementsByClassName("pagination")[0].children["1"].click();
     }
   } catch (e) {
     paginationCount = await createTransactionTable(filteredTransaction);
-    localStorage.setItem("paginationCount", paginationCount);
+    sessionStorage.setItem("paginationCount", paginationCount);
     pagination(transactionTableElement.children["1"], paginationCount);
   }
 }
