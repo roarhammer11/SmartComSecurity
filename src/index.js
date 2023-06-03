@@ -37,6 +37,7 @@ let onboarding;
 
 //#region Initialization
 const initialize = async () => {
+  initializeWebSocket();
   notConnected.style.display = "none";
   try {
     onboarding = new MetaMaskOnboarding();
@@ -718,6 +719,27 @@ async function retrieveBNBPriceinPHP() {
   );
   const bnbPriceResult = await query.json();
   return bnbPriceResult["binancecoin"]["php"];
+}
+
+function initializeWebSocket() {
+  const socket = new WebSocket("ws://localhost:80/ws");
+
+  // Handle WebSocket messages from the server
+  socket.onmessage = function (event) {
+    const message = event.data;
+    console.log(`Received message from server: ${message}`);
+
+    // Perform actions based on the received message
+    if (message === "Database was modified") {
+      // Notify the user or perform any desired actions
+      console.log("Database modification detected!");
+    }
+  };
+
+  // Send a message to the server
+  socket.onopen = function (event) {
+    socket.send("Hello server!");
+  };
 }
 //#endregion
 

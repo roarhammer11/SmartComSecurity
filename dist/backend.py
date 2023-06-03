@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.encoders import jsonable_encoder
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from fastapi.websockets import WebSocket, WebSocketDisconnect
 import uvicorn
 
 app = FastAPI(title="index")
@@ -19,12 +20,8 @@ app.mount(
     name="staticJavascript",
 )
 
-
-@app.on_event("startup")
-async def startup():
-    global db
-    db = Database()
-    # dbconn.setupdatehook(my_update_hook)
+db = Database()
+# dbconn.setupdatehook(my_update_hook)
 
 
 @app.on_event("shutdown")
@@ -75,18 +72,31 @@ async def handleRenderFiles(metamaskAddress: str = Form(...)):
 
 
 class WatchdogHandler(FileSystemEventHandler):
+    def __init__(self, conn):
+        self.conn = conn
+        self.retVal = None
+
     def on_any_event(self, event):
-        print(event)
+        if event.src_path.endswith(".db") and event.event_type == "modified":
+            cursor = self.conn.execute(
+                "SELECT * FROM files ORDER BY timestamp DESC LIMIT 1;"
+            )
+            # print(cursor.fetchall()[0])
+            self.retVal = cursor.fetchall()[0]
 
 
 class WatchdogThread:
-    def __init__(self, target_folder_path):
+    def __init__(self, target_folder_path, conn):
         self.observer = Observer()
         self.target_folder_path = target_folder_path
+        self.conn = conn
+        self.event_handler = None
 
     def start(self):
-        event_handler = WatchdogHandler()
-        self.observer.schedule(event_handler, self.target_folder_path, recursive=True)
+        self.event_handler = WatchdogHandler(self.conn)
+        self.observer.schedule(
+            self.event_handler, self.target_folder_path, recursive=True
+        )
         print(f"Starting the folder monitoring for {self.target_folder_path}")
         self.observer.start()
 
@@ -97,7 +107,7 @@ class WatchdogThread:
 
 
 target_folder_path = "database/"
-watchdog_thread = WatchdogThread(target_folder_path)
+watchdog_thread = WatchdogThread(target_folder_path, db.conn)
 
 
 @app.on_event("startup")
@@ -108,6 +118,21 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     watchdog_thread.stop()
+
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    print("Client connected")
+
+    try:
+        while True:
+            if watchdog_thread.event_handler.retVal != None:
+                print(watchdog_thread.event_handler.retVal)
+                watchdog_thread.event_handler.retVal = None
+
+    except WebSocketDisconnect:
+        print("Client disconnected")
 
 
 if __name__ == "__main__":

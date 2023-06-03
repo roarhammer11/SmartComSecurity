@@ -18,18 +18,16 @@ class Database:
         databasePath = currentPath + r"\database\files.db"
         try:
             this.conn = apsw.Connection(databasePath)
-            this.conn.setupdatehook(this.__my_update_hook)
+            this.__createTables()
         except Exception as e:
             print(e)
 
     def insertFile(
         this, metamaskAddress: str, fileData: bytes, fileName: str, hashId: int
-    ):  # Inserts file to the database
-        this.__createTables()
+    ):
         query = """INSERT INTO Files(hashId, metamaskAddress, fileName, fileData)
                 VALUES(?,?,?,?)"""
         cursor = this.conn.cursor()
-        # hashId = this.__dynamicallyAllocateHashId(metamaskAddress)
         tupleData = (hashId, metamaskAddress, fileName, fileData)
         try:
             cursor.execute(query, tupleData)
@@ -37,9 +35,7 @@ class Database:
         except Error as e:
             print(e)
 
-    def getFile(
-        this, hashId: int, metamaskAddress: str
-    ):  # Saves file to a certain location
+    def getFile(this, hashId: int, metamaskAddress: str):
         fileData = this.__getFileData(hashId, metamaskAddress)
         fileName = this.__getFileName(hashId, metamaskAddress)
         result = {"file-data": fileData, "file-name": fileName}
@@ -61,11 +57,15 @@ class Database:
                 hashId integer NOT NULL,
                 metamaskAddress varchar NOT NULL,
                 fileName varchar NOT NULL,
-                fileData blob NOT NULL
+                fileData blob NOT NULL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
                 );"""
         try:
             cursor = this.conn.cursor()
             cursor.execute(query)
+            cursor.execute(
+                "CREATE TRIGGER IF NOT EXISTS update_timestamp_trigger AFTER UPDATE On files BEGIN UPDATE files SET timestamp = CURRENT_TIMESTAMP WHERE fileId = NEW.fileId; END;"
+            )
         except Error as e:
             print(e)
 
@@ -114,10 +114,7 @@ class Database:
                 "SELECT fileName FROM Files WHERE metamaskAddress = ? AND hashId = ?",
                 (metamaskAddress, hashId),
             )
-            # print(hashId)
-            # print(metamaskAddress)
             result = cursor.fetchall()
-            # print(result)
             parsedResult = result[0][0]
         except Error as e:
             print(e)
@@ -147,11 +144,5 @@ class Database:
             print(e)
         return result
 
-    def __my_update_hook(type: int, db_name: str, table_name: str, rowid: int) -> None:
-        op: str = apsw.mapping_authorizer_function[type]
-        print(f"Updated: { op } db { db_name }, table { table_name }, rowid { rowid }")
-
 
 # endregion
-
-# TODO fix hook
