@@ -728,17 +728,6 @@ function initializeWebSocket() {
   socket.onmessage = function (event) {
     const message = event.data;
     console.log(`Received message from server: ${message}`);
-
-    // Perform actions based on the received message
-    if (message === "Database was modified") {
-      // Notify the user or perform any desired actions
-      console.log("Database modification detected!");
-    }
-  };
-
-  // Send a message to the server
-  socket.onopen = function (event) {
-    socket.send("Hello server!");
   };
 }
 //#endregion
