@@ -190,18 +190,21 @@ $("#uploadForm").submit(async function (e) {
 function convertFileToHex(file, contract, formData) {
   var reader = new FileReader();
   reader.addEventListener("load", async function () {
-    var hexaDecimalString = "0x";
-    var u = new Uint8Array(this.result),
-      a = new Array(u.length),
-      i = u.length;
-    while (i--)
-      // map to hex
-      a[i] = (u[i] < 16 ? "0" : "") + u[i].toString(16);
-    u = null; // free memory
-    // console.log(a); // work with this
-    for (var i = 0; i < a.length; i++) {
-      hexaDecimalString = hexaDecimalString.concat(a[i].toUpperCase());
-    }
+    // var hexaDecimalString = "0x";
+    // var u = new Uint8Array(this.result),
+    //   a = new Array(u.length),
+    //   i = u.length;
+    // while (i--)
+    //   // map to hex
+    //   a[i] = (u[i] < 16 ? "0" : "") + u[i].toString(16);
+    // u = null; // free memory
+    // // console.log(a); // work with this
+    // for (var i = 0; i < a.length; i++) {
+    //   hexaDecimalString = hexaDecimalString.concat(a[i].toUpperCase());
+    // }
+    var hexaDecimalString = ethers.utils.hashMessage(
+      new Uint8Array(this.result)
+    );
     console.log("Hex File: " + hexaDecimalString);
     getSaltedHashValue(hexaDecimalString, contract, formData);
   });

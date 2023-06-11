@@ -12,7 +12,7 @@ class WatchdogHandler(FileSystemEventHandler):
     def on_modified(self, event):
         if event.src_path.endswith(".db"):
             cursor = self.conn.execute(
-                "SELECT * FROM files ORDER BY timestamp DESC LIMIT 1;"
+                "SELECT fileId, fileName FROM files ORDER BY timestamp DESC LIMIT 1;"
             )
             # print(cursor.fetchall()[0])
             self.modifiedRow = cursor.fetchall()[0]
@@ -21,7 +21,7 @@ class WatchdogHandler(FileSystemEventHandler):
 
     async def notify(self):
         print(self.modifiedRow)
-        await self.socket.notify_client(self.modifiedRow[3])
+        await self.socket.notify_client(self.modifiedRow)
 
 
 class WatchdogThread:
