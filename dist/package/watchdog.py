@@ -21,7 +21,7 @@ class WatchdogHandler(FileSystemEventHandler):
 
     async def notify(self):
         print(self.modifiedRow)
-        await self.socket.notify_client(self.modifiedRow)
+        await self.socket.notify_client(self.modifiedRow[1])
 
 
 class WatchdogThread:

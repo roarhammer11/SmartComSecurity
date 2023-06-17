@@ -202,9 +202,7 @@ function convertFileToHex(file, contract, formData) {
     // for (var i = 0; i < a.length; i++) {
     //   hexaDecimalString = hexaDecimalString.concat(a[i].toUpperCase());
     // }
-    var hexaDecimalString = ethers.utils.hashMessage(
-      new Uint8Array(this.result)
-    );
+    var hexaDecimalString = ethers.utils.hexlify(new Uint8Array(this.result));
     console.log("Hex File: " + hexaDecimalString);
     getSaltedHashValue(hexaDecimalString, contract, formData);
   });
