@@ -5,3 +5,5 @@ Jinja2
 fastapi == 0.86.0
 websockets == 11.0.3
 kafka-python == 2.0.2
+apsw
+watchdog

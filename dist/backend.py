@@ -27,7 +27,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             # Wait for incoming messages
-            data = await websocket.receive_text()
+            data = await socket.connected_client.receive_text()
 
             # Process the received message
             # ...
@@ -35,22 +35,6 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         # Remove the WebSocket connection from the event listeners
         socket.connected_client = None
-
-
-# @app.websocket("/ws")
-# async def websocket_endpoint(websocket: WebSocket):
-#     await websocket.accept()
-#     print("Client connected")
-#     try:
-#         while True:
-#             if watchdog_thread.event_handler.modifiedRow != None:
-#                 print(watchdog_thread.event_handler.modifiedRow)
-#                 await websocket.send_text(watchdog_thread.event_handler.modifiedRow)
-#                 watchdog_thread.event_handler.modifiedRow = None
-#             #  data = await websocket.receive_text()
-#             #  print(data)
-#     except WebSocketDisconnect:
-#         print("Client disconnected")
 
 if __name__ == "__main__":
     uvicorn.run("backend:app", host="127.0.0.1", port=80, log_level="info", reload=True)

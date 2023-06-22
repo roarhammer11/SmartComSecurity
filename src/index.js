@@ -4,6 +4,7 @@ import _ from "lodash";
 import {Buffer} from "buffer";
 import {ethers} from "ethers";
 import {sha256} from "ethers/lib/utils";
+import {createWriteStream} from "streamsaver";
 //import "./blockchain.js";
 //#endregion
 // Main Network : https://api.bscscan.com/
@@ -190,18 +191,6 @@ $("#uploadForm").submit(async function (e) {
 function convertFileToHex(file, contract, formData) {
   var reader = new FileReader();
   reader.addEventListener("load", async function () {
-    // var hexaDecimalString = "0x";
-    // var u = new Uint8Array(this.result),
-    //   a = new Array(u.length),
-    //   i = u.length;
-    // while (i--)
-    //   // map to hex
-    //   a[i] = (u[i] < 16 ? "0" : "") + u[i].toString(16);
-    // u = null; // free memory
-    // // console.log(a); // work with this
-    // for (var i = 0; i < a.length; i++) {
-    //   hexaDecimalString = hexaDecimalString.concat(a[i].toUpperCase());
-    // }
     var hexaDecimalString = ethers.utils.hexlify(new Uint8Array(this.result));
     console.log("Hex File: " + hexaDecimalString);
     getSaltedHashValue(hexaDecimalString, contract, formData);
@@ -508,27 +497,100 @@ function getFiles() {
   const formData = new FormData();
   formData.append("hashId", this.dataset.hashId);
   formData.append("metamaskAddress", this.dataset.metamaskAddress);
-  fetch("/dashboard/save-files", {method: "POST", body: formData})
-    .then((response) => response.json())
-    .then((data) => {
-      const blob = new Blob([Buffer.from(data["file-data"], "base64")], {
-        type: "octet-stream",
+  fetch("/dashboard/file-name", {method: "POST", body: formData}).then(
+    (res) => {
+      res.json().then((data) => {
+        fetch("/dashboard/save-files", {method: "POST", body: formData}).then(
+          (response) =>
+            response.blob().then((fileData) => {
+              var freader = new FileReader();
+              freader.onload = function (event) {
+                const contents = event.target.result;
+                console.log(contents);
+                const blob = new Blob([contents]);
+                const readableStream = blob.stream();
+                const fileStream = createWriteStream(data["file_name"], {
+                  size: blob.size,
+                });
+                console.log(data["file_name"]);
+                window.writer = fileStream.getWriter();
+                if (window.WritableStream && readableStream.pipeTo) {
+                  window.writer.releaseLock();
+                  return readableStream.pipeTo(fileStream);
+                }
+
+                const reader = readableStream.getReader();
+                const pump = () =>
+                  reader
+                    .read()
+                    .then((res) =>
+                      res.done
+                        ? writer.close()
+                        : writer.write(res.value).then(pump)
+                    );
+
+                pump();
+              };
+              // const blob = new Blob(
+              //   [Buffer.from(fileData["file-data"], "base64")],
+              //   {
+              //     type: "octet-stream",
+              //   }
+              // );
+              // const blob = new Blob(fileData);
+
+              freader.readAsArrayBuffer(fileData);
+            })
+        );
       });
-      const href = URL.createObjectURL(blob);
-      const a = Object.assign(document.createElement("a"), {
-        href,
-        style: "display:none",
-        download: data["file-name"],
-      });
-      document.body.appendChild(a);
-      a.click();
-      URL.revokeObjectURL(href);
-      a.remove();
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+    }
+  );
 }
+
+// function getFiles() {
+//   const formData = new FormData();
+//   formData.append("hashId", this.dataset.hashId);
+//   formData.append("metamaskAddress", this.dataset.metamaskAddress);
+//   fetch("/dashboard/file-name", {method: "POST", body: formData}).then(
+//     (res) => {
+//       res.json().then((data) => {
+//         fetch("/dashboard/save-files", {method: "POST", body: formData}).then(
+//           (response) =>
+//             response.json().then((fileData) => {
+//               const blob = new Blob(
+//                 [Buffer.from(fileData["file-data"], "base64")],
+//                 {
+//                   type: "octet-stream",
+//                 }
+//               );
+//               const readableStream = blob.stream();
+//               const fileStream = createWriteStream(data["file_name"], {
+//                 size: blob.size,
+//               });
+//               console.log(data["file_name"]);
+//               window.writer = fileStream.getWriter();
+//               if (window.WritableStream && readableStream.pipeTo) {
+//                 window.writer.releaseLock();
+//                 return readableStream.pipeTo(fileStream);
+//               }
+
+//               const reader = readableStream.getReader();
+//               const pump = () =>
+//                 reader
+//                   .read()
+//                   .then((res) =>
+//                     res.done
+//                       ? writer.close()
+//                       : writer.write(res.value).then(pump)
+//                   );
+
+//               pump();
+//             })
+//         );
+//       });
+//     }
+//   );
+// }
 
 async function getSaltedHashValue(file, contract, formData) {
   var randomPreviousBlockHash = await getRandomPreviousBlockHash(contract);
@@ -731,6 +793,7 @@ function initializeWebSocket() {
     console.log(`Received message from server: ${message}`);
   };
 }
+// StreamSaver can detect and use the Ponyfill that is loaded from the cdn.
 //#endregion
 
 //TODO create pagination of transaction

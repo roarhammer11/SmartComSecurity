@@ -37,7 +37,7 @@ class Database:
 
     def getFile(this, hashId: int, metamaskAddress: str):
         fileData = this.__getFileData(hashId, metamaskAddress)
-        fileName = this.__getFileName(hashId, metamaskAddress)
+        fileName = this.getFileName(hashId, metamaskAddress)
         result = {"file-data": fileData, "file-name": fileName}
         return result
 
@@ -46,7 +46,7 @@ class Database:
         hashId = this.__getHashIdOfFiles(metamaskAddress)
         renderFiles = {"number-of-files": numberOfFiles, "hashId": hashId}
         for x in range(0, numberOfFiles):
-            renderFiles[x] = this.__getFileName(hashId[x][0], metamaskAddress)
+            renderFiles[x] = this.getFileName(hashId[x][0], metamaskAddress)
         return renderFiles
 
     # private functions
@@ -107,7 +107,7 @@ class Database:
             print(e)
         return parsedResult
 
-    def __getFileName(this, hashId: int, metamaskAddress: str):
+    def getFileName(this, hashId: int, metamaskAddress: str):
         cursor = this.conn.cursor()
         try:
             cursor.execute(

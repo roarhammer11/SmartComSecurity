@@ -61,6 +61,11 @@ async def handleRenderFiles(metamaskAddress: str = Form(...)):
     return renderFiles
 
 
+@router.post("/dashboard/file-name")
+async def handleFileName(hashId: int = Form(...), metamaskAddress: str = Form(...)):
+    return {"file_name": db.getFileName(hashId, metamaskAddress)}
+
+
 @router.on_event("shutdown")
 async def shutdown_event():
     watchdog_thread.stop()
