@@ -69,28 +69,6 @@ class Database:
         except Error as e:
             print(e)
 
-    # def __getBinaryData(this, filePath):
-    #     print(filePath)
-    #     try:
-    #         with open(filePath, 'rb') as file:
-    #             binaryData = file.read()
-    #     except Exception as e:
-    #         print(e)
-    #     return binaryData
-
-    # def __dynamicallyAllocateHashId(this, metamaskAddress: str):
-    #     conn = this.__connectDatabase()
-    #     cursor = conn.cursor()
-    #     try:
-    #         cursor.execute("SELECT COUNT(metamaskAddress) FROM Files WHERE metamaskAddress = ?",(metamaskAddress,))
-    #         result = cursor.fetchall()
-    #         parsedResult = result[0][0]
-    #     except Error as e:
-    #         print(e)
-    #     finally:
-    #         conn.close()
-    #     return parsedResult
-
     def __getFileData(this, hashId: int, metamaskAddress: str):
         cursor = this.conn.cursor()
         try:
@@ -98,10 +76,7 @@ class Database:
                 "SELECT fileData FROM Files WHERE metamaskAddress = ? AND hashId = ?",
                 (metamaskAddress, hashId),
             )
-            # print(hashId)
-            # print(metamaskAddress)
             result = cursor.fetchall()
-            # print(result)
             parsedResult = result[0][0]
         except Error as e:
             print(e)

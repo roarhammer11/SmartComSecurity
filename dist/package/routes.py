@@ -4,8 +4,9 @@ from fastapi.templating import Jinja2Templates
 from fastapi.encoders import jsonable_encoder
 import base64
 from package.database import Database
-from package.watchdog import WatchdogHandler, WatchdogThread
+from package.watchdog import WatchdogThread
 from package.socket import Socket
+
 
 router = APIRouter()
 templates = Jinja2Templates(directory="dist/static")
@@ -28,12 +29,6 @@ async def handleUploadFiles(
     fileIndex: str = Form(...),
 ):
     try:
-        # chunk = 1024  # 500mb chunk
-        # data = b""
-        # while(byte := await uploadFile.read(chunk)):
-        #     data = data + byte
-        # print(multiprocessing.cpu_count())
-        # data = await uploadFile.read()
         data = await uploadFile.read()
         db.insertFile(metamaskAddress, data, uploadFile.filename, fileIndex)
     except Exception as e:

@@ -10,7 +10,7 @@ class WatchdogHandler(FileSystemEventHandler):
         self.socket = socket
 
     def on_modified(self, event):
-        if event.src_path.endswith(".db") and self.socket != None:
+        if event.src_path.endswith(".db") and self.socket.connected_client != None:
             cursor = self.conn.execute(
                 "SELECT fileId, fileName FROM files ORDER BY timestamp DESC LIMIT 1;"
             )

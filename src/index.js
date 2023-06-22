@@ -5,6 +5,7 @@ import {Buffer} from "buffer";
 import {ethers} from "ethers";
 import {sha256} from "ethers/lib/utils";
 import {createWriteStream} from "streamsaver";
+import {decode} from "base64-arraybuffer";
 //import "./blockchain.js";
 //#endregion
 // Main Network : https://api.bscscan.com/
@@ -502,44 +503,33 @@ function getFiles() {
       res.json().then((data) => {
         fetch("/dashboard/save-files", {method: "POST", body: formData}).then(
           (response) =>
-            response.blob().then((fileData) => {
-              var freader = new FileReader();
-              freader.onload = function (event) {
-                const contents = event.target.result;
-                console.log(contents);
-                const blob = new Blob([contents]);
-                const readableStream = blob.stream();
-                const fileStream = createWriteStream(data["file_name"], {
-                  size: blob.size,
-                });
-                console.log(data["file_name"]);
-                window.writer = fileStream.getWriter();
-                if (window.WritableStream && readableStream.pipeTo) {
-                  window.writer.releaseLock();
-                  return readableStream.pipeTo(fileStream);
+            response.json().then((fileData) => {
+              const blob = new Blob(
+                [Buffer.from(decode(fileData["file-data"]))],
+                {
+                  type: "octet-stream",
                 }
-
-                const reader = readableStream.getReader();
-                const pump = () =>
-                  reader
-                    .read()
-                    .then((res) =>
-                      res.done
-                        ? writer.close()
-                        : writer.write(res.value).then(pump)
-                    );
-
-                pump();
-              };
-              // const blob = new Blob(
-              //   [Buffer.from(fileData["file-data"], "base64")],
-              //   {
-              //     type: "octet-stream",
-              //   }
-              // );
-              // const blob = new Blob(fileData);
-
-              freader.readAsArrayBuffer(fileData);
+              );
+              const readableStream = blob.stream();
+              const fileStream = createWriteStream(data["file_name"], {
+                size: blob.size,
+              });
+              console.log(data["file_name"]);
+              window.writer = fileStream.getWriter();
+              if (window.WritableStream && readableStream.pipeTo) {
+                window.writer.releaseLock();
+                return readableStream.pipeTo(fileStream);
+              }
+              const reader = readableStream.getReader();
+              const pump = () =>
+                reader
+                  .read()
+                  .then((res) =>
+                    res.done
+                      ? writer.close()
+                      : writer.write(res.value).then(pump)
+                  );
+              pump();
             })
         );
       });
