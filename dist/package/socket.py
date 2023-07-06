@@ -4,4 +4,5 @@ class Socket:
 
     async def notify_client(self, data):
         # print(self.connected_client)
-        await self.connected_client.send_text(data)
+        await self.connected_client.send_json(data)
+        

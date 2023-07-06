@@ -10,7 +10,7 @@ import {decode} from "base64-arraybuffer";
 //#endregion
 // Main Network : https://api.bscscan.com/
 let apiKey = "JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95";
-let contractAddress = "0x8B13e5cdA78fE99000E662278C5345dCeE7e689E";
+let contractAddress = "0x7532B258b5Bd6d0aCd3950bdaCCbF9909C8B36eb";
 //#region Global Variables
 const {isMetaMaskInstalled} = MetaMaskOnboarding;
 const connectButton = document.getElementById("connectButton");
@@ -584,6 +584,11 @@ function getFiles() {
 
 async function getSaltedHashValue(file, contract, formData) {
   var randomPreviousBlockHash = await getRandomPreviousBlockHash(contract);
+  console.log(file);
+  console.log("here");
+  console.log(typeof file);
+  console.log(randomPreviousBlockHash.substring(2));
+  console.log(typeof randomPreviousBlockHash.substring(2));
   let saltedHash = sha256(file + randomPreviousBlockHash.substring(2));
   console.log("Salted Hash: " + saltedHash);
   saveToBlockchain(saltedHash, randomPreviousBlockHash, contract, formData);
@@ -626,6 +631,14 @@ async function saveToBlockchain(
   });
 }
 
+async function getHashStructureData(contract, hashId) {
+  const data = await contract.getHashStructureData(
+    accountAddress.innerHTML,
+    hashId
+  );
+  console.log(data);
+  return data;
+}
 function uploadFile(formData) {
   fetch("/dashboard/upload-files", {method: "POST", body: formData})
     .then((response) => response.json())
@@ -778,12 +791,28 @@ function initializeWebSocket() {
   const socket = new WebSocket("ws://localhost:80/ws");
 
   // Handle WebSocket messages from the server
-  socket.onmessage = function (event) {
+  socket.onmessage = async function (event) {
     const message = event.data;
+    const messageJson = JSON.parse(message);
     console.log(`Received message from server: ${message}`);
+    const contract = await getSmartContract(contractAddress);
+    const blockchainData = await getHashStructureData(
+      contract,
+      messageJson["hashId"]
+    );
+    const previousBlockHash = blockchainData[0];
+    const blockchainSaltedHashValue = blockchainData[1];
+    console.log(typeof messageJson["fileData"]);
+    let currentSaltedHash = sha256(
+      "0x" + messageJson["fileData"] + previousBlockHash.substring(2)
+    );
+    console.log(currentSaltedHash);
+    console.log(blockchainSaltedHashValue);
+    if (currentSaltedHash != blockchainSaltedHashValue) {
+      console.log("File data has been changed");
+    } else {
+      console.log("ok");
+    }
   };
 }
-// StreamSaver can detect and use the Ponyfill that is loaded from the cdn.
 //#endregion
-
-//TODO create pagination of transaction

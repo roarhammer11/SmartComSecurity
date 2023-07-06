@@ -28,7 +28,6 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             # Wait for incoming messages
             data = await socket.connected_client.receive_text()
-
             # Process the received message
             # ...
 

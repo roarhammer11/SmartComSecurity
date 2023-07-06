@@ -12,12 +12,21 @@ class WatchdogHandler(FileSystemEventHandler):
     def on_modified(self, event):
         if event.src_path.endswith(".db") and self.socket.connected_client != None:
             cursor = self.conn.execute(
-                "SELECT fileId, fileName FROM files ORDER BY timestamp DESC LIMIT 1;"
+                "SELECT hashId, fileData FROM files ORDER BY timestamp DESC LIMIT 1;"
             )
-            # print(cursor.fetchall()[0])
+            last_index = self.conn.execute("SELECT COUNT(*) FROM files;").fetchall()[0]
             self.modifiedRow = cursor.fetchall()[0]
-            loop = asyncio.new_event_loop()
-            loop.run_until_complete(self.socket.notify_client(self.modifiedRow[1]))
+            # Sends the fileId of the changed row to the client
+            if self.modifiedRow[0] != last_index[0]:
+                loop = asyncio.new_event_loop()
+                loop.run_until_complete(
+                    self.socket.notify_client(
+                        {
+                            "hashId": self.modifiedRow[0],
+                            "fileData": self.modifiedRow[1].hex(),
+                        }
+                    )
+                )
 
 
 class WatchdogThread:
