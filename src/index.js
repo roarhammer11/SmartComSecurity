@@ -809,7 +809,13 @@ function initializeWebSocket() {
     console.log(currentSaltedHash);
     console.log(blockchainSaltedHashValue);
     if (currentSaltedHash != blockchainSaltedHashValue) {
-      console.log("File data has been changed");
+      alert(
+        "File ID: " +
+          messageJson["fileId"] +
+          "\nFile Name: " +
+          messageJson["fileName"] +
+          "\nIntegrity has changed."
+      );
     } else {
       console.log("ok");
     }

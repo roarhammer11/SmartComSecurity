@@ -12,7 +12,7 @@ class WatchdogHandler(FileSystemEventHandler):
     def on_modified(self, event):
         if event.src_path.endswith(".db") and self.socket.connected_client != None:
             cursor = self.conn.execute(
-                "SELECT hashId, fileData FROM files ORDER BY timestamp DESC LIMIT 1;"
+                "SELECT hashId, fileData, fileId, fileName FROM files ORDER BY timestamp DESC LIMIT 1;"
             )
             last_index = self.conn.execute("SELECT COUNT(*) FROM files;").fetchall()[0]
             self.modifiedRow = cursor.fetchall()[0]
@@ -24,6 +24,8 @@ class WatchdogHandler(FileSystemEventHandler):
                         {
                             "hashId": self.modifiedRow[0],
                             "fileData": self.modifiedRow[1].hex(),
+                            "fileId": self.modifiedRow[2],
+                            "fileName": self.modifiedRow[3],
                         }
                     )
                 )
