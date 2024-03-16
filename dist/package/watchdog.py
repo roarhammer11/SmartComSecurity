@@ -19,11 +19,18 @@ class WatchdogHandler(FileSystemEventHandler):
             # Sends the fileId of the changed row to the client
             if self.modifiedRow[0] != last_index[0]:
                 loop = asyncio.new_event_loop()
+
+                # if type(self.modifiedRow[1]) == str:
+                #     self.modifiedRow[1] = str.encode(self.modifiedRow)
                 loop.run_until_complete(
                     self.socket.notify_client(
                         {
                             "hashId": self.modifiedRow[0],
-                            "fileData": self.modifiedRow[1].hex(),
+                            "fileData": (
+                                self.modifiedRow[1].hex()
+                                if type(self.modifiedRow[1]) != str
+                                else str.encode(self.modifiedRow[1]).hex()
+                            ),
                             "fileId": self.modifiedRow[2],
                             "fileName": self.modifiedRow[3],
                         }

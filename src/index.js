@@ -822,3 +822,5 @@ function initializeWebSocket() {
   };
 }
 //#endregion
+
+//TODO if integrity has been changed, you cannot download anymore the file
