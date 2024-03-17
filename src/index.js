@@ -494,42 +494,68 @@ function printProvider(providerName) {
 }
 
 //gets files from the database
-function getFiles() {
+async function getFiles() {
   const formData = new FormData();
   formData.append("hashId", this.dataset.hashId);
   formData.append("metamaskAddress", this.dataset.metamaskAddress);
+  const contract = await getSmartContract(contractAddress);
+  console.log(this.dataset.hashId);
+  const blockchainData = await getHashStructureData(
+    contract,
+    this.dataset.hashId
+  );
   fetch("/dashboard/file-name", {method: "POST", body: formData}).then(
     (res) => {
       res.json().then((data) => {
         fetch("/dashboard/save-files", {method: "POST", body: formData}).then(
           (response) =>
             response.json().then((fileData) => {
-              const blob = new Blob(
-                [Buffer.from(decode(fileData["file-data"]))],
-                {
-                  type: "octet-stream",
-                }
+              const hexString = ethers.utils.hexlify(
+                new Uint8Array(decode(fileData["file-data"]))
               );
-              const readableStream = blob.stream();
-              const fileStream = createWriteStream(data["file_name"], {
-                size: blob.size,
-              });
-              console.log(data["file_name"]);
-              window.writer = fileStream.getWriter();
-              if (window.WritableStream && readableStream.pipeTo) {
-                window.writer.releaseLock();
-                return readableStream.pipeTo(fileStream);
+              const retrievedSaltedHash = sha256(
+                hexString + blockchainData[0].substring(2)
+              );
+              console.log(retrievedSaltedHash);
+              console.log(blockchainData[1]);
+              if (retrievedSaltedHash === blockchainData[1]) {
+                const blob = new Blob(
+                  [Buffer.from(decode(fileData["file-data"]))],
+                  {
+                    type: "octet-stream",
+                  }
+                );
+
+                const readableStream = blob.stream();
+                const fileStream = createWriteStream(data["file_name"], {
+                  size: blob.size,
+                });
+                console.log(data["file_name"]);
+                window.writer = fileStream.getWriter();
+                if (window.WritableStream && readableStream.pipeTo) {
+                  window.writer.releaseLock();
+                  return readableStream.pipeTo(fileStream);
+                }
+                const reader = readableStream.getReader();
+                const pump = () =>
+                  reader
+                    .read()
+                    .then((res) =>
+                      res.done
+                        ? writer.close()
+                        : writer.write(res.value).then(pump)
+                    );
+                pump();
+              } else {
+                alert(
+                  "Cannot download file due to change of data integrity.\n" +
+                    "Saved Hash: " +
+                    blockchainData[1] +
+                    "\n" +
+                    "Current Hash: " +
+                    retrievedSaltedHash
+                );
               }
-              const reader = readableStream.getReader();
-              const pump = () =>
-                reader
-                  .read()
-                  .then((res) =>
-                    res.done
-                      ? writer.close()
-                      : writer.write(res.value).then(pump)
-                  );
-              pump();
             })
         );
       });
@@ -823,4 +849,4 @@ function initializeWebSocket() {
 }
 //#endregion
 
-//TODO if integrity has been changed, you cannot download anymore the file
+//TODO fix bug where addition of data triggers watchdog
