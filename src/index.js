@@ -6,11 +6,12 @@ import {ethers} from "ethers";
 import {sha256} from "ethers/lib/utils";
 import {createWriteStream} from "streamsaver";
 import {decode} from "base64-arraybuffer";
+var aesjs = require("aes-js");
 //import "./blockchain.js";
 //#endregion
 // Main Network : https://api.bscscan.com/
 let apiKey = "JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95";
-let contractAddress = "0x7532B258b5Bd6d0aCd3950bdaCCbF9909C8B36eb";
+let contractAddress = "0xd341Ed55450DCAA2949d2C56a34a7F3d62299657";
 //#region Global Variables
 const {isMetaMaskInstalled} = MetaMaskOnboarding;
 const connectButton = document.getElementById("connectButton");
@@ -184,20 +185,21 @@ $("#uploadForm").submit(async function (e) {
   const contract = await getSmartContract(contractAddress);
   const currentIndex = await getCurrentFileIndex(contract);
   formData.append("fileIndex", currentIndex);
-  convertFileToHex(file, contract, formData);
+  convertFileToHex(file, formData);
 });
 
 //functions
 //converts file to hexadecimal format
-function convertFileToHex(file, contract, formData) {
+function convertFileToHex(file, formData) {
   var reader = new FileReader();
   reader.addEventListener("load", async function () {
     var hexaDecimalString = ethers.utils.hexlify(new Uint8Array(this.result));
     console.log("Hex File: " + hexaDecimalString);
-    getSaltedHashValue(hexaDecimalString, contract, formData);
+    getSaltedHashValue(hexaDecimalString, formData);
   });
   reader.readAsArrayBuffer(file[0]);
 }
+
 function renderFiles() {
   const formData = new FormData();
   formData.append("metamaskAddress", currentAccount);
@@ -608,7 +610,8 @@ async function getFiles() {
 //   );
 // }
 
-async function getSaltedHashValue(file, contract, formData) {
+async function getSaltedHashValue(file, formData) {
+  const contract = await getSmartContract(contractAddress);
   var randomPreviousBlockHash = await getRandomPreviousBlockHash(contract);
   console.log(file);
   console.log("here");
@@ -617,13 +620,42 @@ async function getSaltedHashValue(file, contract, formData) {
   console.log(typeof randomPreviousBlockHash.substring(2));
   let saltedHash = sha256(file + randomPreviousBlockHash.substring(2));
   console.log("Salted Hash: " + saltedHash);
-  saveToBlockchain(saltedHash, randomPreviousBlockHash, contract, formData);
+  // let encryptedFile = encryptFileWithAES(file, saltedHash);
+
+  // formData.append("uploadFile", encryptedFile);
+  formData.append("saltedHash", saltedHash);
+  formData.append("randomPreviousBlockHash", randomPreviousBlockHash);
+  uploadFile(formData);
+  // saveToBlockchain(saltedHash, randomPreviousBlockHash, contract, formData);
 }
+
+// function encryptFileWithAES(file, saltedHash) {
+//   var key_256_buffer = Buffer.from(saltedHash.substring(2), "hex");
+//   console.log(key_256_buffer);
+//   var fileBytes = aesjs.utils.hex.toBytes(file.substring(2));
+//   var aesCtr = new aesjs.ModeOfOperation.ctr(
+//     key_256_buffer,
+//     new aesjs.Counter(7)
+//   );
+//   var encryptedFileBytes = aesCtr.encrypt(fileBytes);
+//   var encryptedFileHex = aesjs.utils.hex.fromBytes(encryptedFileBytes);
+//   console.log(encryptedFileHex);
+//   return encryptedFileHex;
+//   // var encryptedBytes = aesjs.utils.hex.toBytes(encryptedHex);
+//   // var aesCtr = new aesjs.ModeOfOperation.ctr(
+//   //   key_256_buffer,
+//   //   new aesjs.Counter(7)
+//   // );
+//   // var decryptedBytes = aesCtr.decrypt(encryptedBytes);
+//   // console.log(ethers.utils.hexlify(decryptedBytes));
+// }
 
 async function getSmartContract(contractAddress) {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   var contractPromise = await fetch(
-    "https://api-testnet.bscscan.com/api?module=contract&action=getabi&address=0x8B13e5cdA78fE99000E662278C5345dCeE7e689E&apikey=JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95"
+    "https://api-testnet.bscscan.com/api?module=contract&action=getabi&address=" +
+      contractAddress +
+      "&apikey=JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95"
   );
   var contractJson = await contractPromise.json();
   var smartCon = JSON.parse(contractJson.result);
@@ -649,13 +681,25 @@ async function getRandomPreviousBlockHash(contract) {
 async function saveToBlockchain(
   saltedHashValue,
   previousBlockHash,
-  contract,
-  formData
+  nonce,
+  contract
 ) {
-  contract.StoreHash(saltedHashValue, previousBlockHash).then(() => {
-    uploadFile(formData);
-  });
+  console.log(saltedHashValue);
+  console.log(previousBlockHash);
+  console.log(nonce);
+  contract.StoreHash(saltedHashValue, previousBlockHash, nonce).then(() => {});
 }
+
+// async function saveToBlockchain(
+//   saltedHashValue,
+//   previousBlockHash,
+//   contract,
+//   formData
+// ) {
+//   contract.StoreHash(saltedHashValue, previousBlockHash).then(() => {
+//     uploadFile(formData);
+//   });
+// }
 
 async function getHashStructureData(contract, hashId) {
   const data = await contract.getHashStructureData(
@@ -665,6 +709,7 @@ async function getHashStructureData(contract, hashId) {
   console.log(data);
   return data;
 }
+
 function uploadFile(formData) {
   fetch("/dashboard/upload-files", {method: "POST", body: formData})
     .then((response) => response.json())
@@ -676,6 +721,18 @@ function uploadFile(formData) {
       console.log(error);
     });
 }
+
+// function uploadFile(formData) {
+//   fetch("/dashboard/upload-files", {method: "POST", body: formData})
+//     .then((response) => response.json())
+//     .then((data) => {
+//       alert("Successfuly saved " + data.file_name + " to the database.");
+//       document.getElementById("uploadForm").reset();
+//     })
+//     .catch((error) => {
+//       console.log(error);
+//     });
+// }
 
 // function getTransactions
 
@@ -821,32 +878,49 @@ function initializeWebSocket() {
     const message = event.data;
     const messageJson = JSON.parse(message);
     console.log(`Received message from server: ${message}`);
-    const contract = await getSmartContract(contractAddress);
-    const blockchainData = await getHashStructureData(
-      contract,
-      messageJson["hashId"]
-    );
-    const previousBlockHash = blockchainData[0];
-    const blockchainSaltedHashValue = blockchainData[1];
-    console.log(typeof messageJson["fileData"]);
-    let currentSaltedHash = sha256(
-      "0x" + messageJson["fileData"] + previousBlockHash.substring(2)
-    );
-    console.log(currentSaltedHash);
-    console.log(blockchainSaltedHashValue);
-    if (currentSaltedHash != blockchainSaltedHashValue) {
-      alert(
-        "File ID: " +
-          messageJson["fileId"] +
-          "\nFile Name: " +
-          messageJson["fileName"] +
-          "\nIntegrity has changed."
+    if (messageJson["id"] === "on_modified") {
+      const contract = await getSmartContract(contractAddress);
+      const blockchainData = await getHashStructureData(
+        contract,
+        messageJson["hashId"]
       );
-    } else {
-      console.log("ok");
+      const previousBlockHash = blockchainData[0];
+      const blockchainSaltedHashValue = blockchainData[1];
+      console.log(typeof messageJson["fileData"]);
+      let currentSaltedHash = sha256(
+        "0x" + messageJson["fileData"] + previousBlockHash.substring(2)
+      );
+      console.log(currentSaltedHash);
+      console.log(blockchainSaltedHashValue);
+      if (currentSaltedHash != blockchainSaltedHashValue) {
+        alert(
+          "File ID: " +
+            messageJson["fileId"] +
+            "\nFile Name: " +
+            messageJson["fileName"] +
+            "\nIntegrity has changed."
+        );
+      } else {
+        console.log("ok");
+      }
+    } else if (messageJson["id"] === "store_nonce") {
+      console.log("eheh nonce");
+      const contract = await getSmartContract(contractAddress);
+      const buffer = Buffer.from(messageJson["nonce"], "base64");
+      const nonce = "0x" + buffer.toString("hex");
+      console.log(nonce);
+      saveToBlockchain(
+        messageJson["saltedHash"],
+        messageJson["randomPreviousBlockHash"],
+        nonce,
+        contract
+      );
     }
   };
 }
 //#endregion
 
-//TODO fix bug where addition of data triggers watchdog
+/*TODO 
+  fix bug where addition of data triggers watchdog
+  use aes encryption 
+*/

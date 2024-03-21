@@ -25,6 +25,7 @@ class WatchdogHandler(FileSystemEventHandler):
                 loop.run_until_complete(
                     self.socket.notify_client(
                         {
+                            "id": "on_modified",
                             "hashId": self.modifiedRow[0],
                             "fileData": (
                                 self.modifiedRow[1].hex()
