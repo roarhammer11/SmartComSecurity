@@ -11,7 +11,7 @@ var aesjs = require("aes-js");
 //#endregion
 // Main Network : https://api.bscscan.com/
 let apiKey = "JCB3TX7R3DYBU6EQZEDN8QDWH6SFGCSY95";
-let contractAddress = "0xd341Ed55450DCAA2949d2C56a34a7F3d62299657";
+let contractAddress = "0x8c7dD0f332e5E86820A3636C6850262ea155B97e";
 //#region Global Variables
 const {isMetaMaskInstalled} = MetaMaskOnboarding;
 const connectButton = document.getElementById("connectButton");
@@ -506,6 +506,8 @@ async function getFiles() {
     contract,
     this.dataset.hashId
   );
+  formData.append("saltedHash", blockchainData[1]);
+  formData.append("nonce", blockchainData[2]);
   fetch("/dashboard/file-name", {method: "POST", body: formData}).then(
     (res) => {
       res.json().then((data) => {
@@ -684,9 +686,6 @@ async function saveToBlockchain(
   nonce,
   contract
 ) {
-  console.log(saltedHashValue);
-  console.log(previousBlockHash);
-  console.log(nonce);
   contract.StoreHash(saltedHashValue, previousBlockHash, nonce).then(() => {});
 }
 

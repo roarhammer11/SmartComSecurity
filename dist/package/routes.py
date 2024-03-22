@@ -36,29 +36,14 @@ async def handleUploadFiles(
 ):
     try:
         data = await uploadFile.read()
-        key = bytearray.fromhex(saltedHash[2:])
-        # print(key)
-        # print(type(key))
-        # print(saltedHash[2:])
-        # print(bytearray.fromhex(saltedHash[2:]))
-        cipher = AES.new(key, AES.MODE_CTR)
-        ct_bytes = cipher.encrypt(data)
-        nonce = b64encode(cipher.nonce).decode("utf-8")  # put nonce in blockchain
-        ct = b64encode(ct_bytes).decode("utf-8")
-        print(nonce)
-        await socket.notify_client(
-            {
-                "id": "store_nonce",
-                "nonce": nonce,
-                "randomPreviousBlockHash": randomPreviousBlockHash,
-                "saltedHash": saltedHash,
-            }
+        await encryptFile(
+            saltedHash,
+            data,
+            randomPreviousBlockHash,
+            fileIndex,
+            metamaskAddress,
+            uploadFile,
         )
-        # sendNonceToClient(nonce)
-        # cipher = AES.new(key, AES.MODE_CTR, nonce=b64decode(nonce))
-        # pt = cipher.decrypt(b64decode(ct))
-        # print(data == pt)
-        db.insertFile(metamaskAddress, ct, uploadFile.filename, fileIndex)
     except Exception as e:
         return {"message": f"{e}"}
     finally:
@@ -74,10 +59,17 @@ async def handleUploadFiles(
 
 
 @router.post("/dashboard/save-files/")
-async def handleSaveFiles(hashId: int = Form(...), metamaskAddress: str = Form(...)):
+async def handleSaveFiles(
+    hashId: int = Form(...),
+    metamaskAddress: str = Form(...),
+    nonce: str = Form(...),
+    saltedHash: str = Form(...),
+):
     data = db.getFile(hashId, metamaskAddress)
+    print(decryptFile(saltedHash, nonce, data))
     jsonifyData = jsonable_encoder(
-        data, custom_encoder={bytes: lambda v: base64.b64encode(v).decode("utf-8")}
+        decryptFile(saltedHash, nonce, data),
+        custom_encoder={bytes: lambda v: base64.b64encode(v).decode("utf-8")},
     )
     return jsonifyData
 
@@ -96,3 +88,37 @@ async def handleFileName(hashId: int = Form(...), metamaskAddress: str = Form(..
 @router.on_event("shutdown")
 async def shutdown_event():
     watchdog_thread.stop()
+
+
+async def encryptFile(
+    saltedHash, data, randomPreviousBlockHash, fileIndex, metamaskAddress, uploadFile
+):
+    key = bytearray.fromhex(saltedHash[2:])
+    cipher = AES.new(key, AES.MODE_CTR)
+    ct_bytes = cipher.encrypt(data)
+    nonce = b64encode(cipher.nonce).decode("utf-8")  # put nonce in blockchain
+    ct = b64encode(ct_bytes).decode("utf-8")
+    print(data)
+    await socket.notify_client(
+        {
+            "id": "store_nonce",
+            "nonce": nonce,
+            "randomPreviousBlockHash": randomPreviousBlockHash,
+            "saltedHash": saltedHash,
+        }
+    )
+    # sendNonceToClient(nonce)
+
+    db.insertFile(metamaskAddress, ct, uploadFile.filename, fileIndex)
+
+
+def decryptFile(saltedHash, hexNonce, ct):
+    # print(saltedHash)
+    # print(nonce)
+    # print(ct)
+    key = bytearray.fromhex(saltedHash[2:])
+    nonce = b64encode(bytes.fromhex(hexNonce[2:])).decode()
+    print(nonce)
+    cipher = AES.new(key, AES.MODE_CTR, nonce=b64decode(nonce))
+    pt = cipher.decrypt(b64decode(ct["file-data"]))
+    return {"file-data": pt, "file-name": ct["file-name"]}
