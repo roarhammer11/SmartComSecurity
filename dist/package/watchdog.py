@@ -30,7 +30,7 @@ class WatchdogHandler(FileSystemEventHandler):
                             "fileData": (
                                 self.modifiedRow[1].hex()
                                 if type(self.modifiedRow[1]) != str
-                                else str.encode(self.modifiedRow[1]).hex()
+                                else str.encode(self.modifiedRow[1]).hex() 
                             ),
                             "fileId": self.modifiedRow[2],
                             "fileName": self.modifiedRow[3],

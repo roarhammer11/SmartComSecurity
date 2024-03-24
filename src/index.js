@@ -750,6 +750,7 @@ async function retrieveTransactions(contractAddress, chainId, metamaskAddress) {
   let transaction = await fetch(query);
   let data = await transaction.json();
   const filteredTransaction = filterTransaction(data, metamaskAddress);
+  console.log(data);
   console.log(transactionTableElement);
   console.log(filteredTransaction);
   let paginationCount;
@@ -786,11 +787,12 @@ function filterTransaction(transactionData, metamaskAddress) {
     if (
       transactionData["result"][x]["from"] === metamaskAddress &&
       transactionData["result"][x]["functionName"] ===
-        "StoreHash(bytes32 hashValue,bytes32 previousBlockHash)"
+        "StoreHash(bytes32 hashValue,bytes32 previousBlockHash,bytes8 nonce)"
     ) {
       retVal.push(transactionData["result"][x]);
     }
   }
+  console.log(retVal);
   return retVal;
 }
 
@@ -921,5 +923,6 @@ function initializeWebSocket() {
 
 /*TODO 
   fix bug where addition of data triggers watchdog
-  use aes encryption 
+  fix transaction not triggering
+  store data first to blockchain before storing files to database
 */

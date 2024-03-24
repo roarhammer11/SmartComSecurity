@@ -67,10 +67,12 @@ async def handleSaveFiles(
 ):
     data = db.getFile(hashId, metamaskAddress)
     print(decryptFile(saltedHash, nonce, data))
+
     jsonifyData = jsonable_encoder(
         decryptFile(saltedHash, nonce, data),
         custom_encoder={bytes: lambda v: base64.b64encode(v).decode("utf-8")},
     )
+
     return jsonifyData
 
 
@@ -116,9 +118,11 @@ def decryptFile(saltedHash, hexNonce, ct):
     # print(saltedHash)
     # print(nonce)
     # print(ct)
+
     key = bytearray.fromhex(saltedHash[2:])
     nonce = b64encode(bytes.fromhex(hexNonce[2:])).decode()
     print(nonce)
     cipher = AES.new(key, AES.MODE_CTR, nonce=b64decode(nonce))
     pt = cipher.decrypt(b64decode(ct["file-data"]))
+
     return {"file-data": pt, "file-name": ct["file-name"]}
