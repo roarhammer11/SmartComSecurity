@@ -58,13 +58,14 @@ class Database:
                 metamaskAddress varchar NOT NULL,
                 fileName varchar NOT NULL,
                 fileData blob NOT NULL,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                modified BOOLEAN DEFAULT FALSE
                 );"""
         try:
             cursor = this.conn.cursor()
             cursor.execute(query)
             cursor.execute(
-                "CREATE TRIGGER IF NOT EXISTS update_timestamp_trigger AFTER UPDATE On files BEGIN UPDATE files SET timestamp = CURRENT_TIMESTAMP WHERE fileId = NEW.fileId; END;"
+                "CREATE TRIGGER IF NOT EXISTS update_timestamp_trigger AFTER UPDATE On files BEGIN UPDATE files SET timestamp = CURRENT_TIMESTAMP, modified = TRUE WHERE fileId = NEW.fileId; END;"
             )
         except Error as e:
             print(e)

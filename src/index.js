@@ -923,6 +923,5 @@ function initializeWebSocket() {
 
 /*TODO 
   fix bug where addition of data triggers watchdog
-  fix transaction not triggering
   store data first to blockchain before storing files to database
 */
