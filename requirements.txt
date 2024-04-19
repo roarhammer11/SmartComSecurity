@@ -2,8 +2,9 @@
 uvicorn == 0.18.2
 python-multipart == 0.0.5
 Jinja2
-fastapi == 0.86.0
+fastapi 
 websockets == 11.0.3
 kafka-python == 2.0.2
 apsw
 watchdog
+pycryptodome

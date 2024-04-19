@@ -450,10 +450,13 @@ function chainNetworkHandler(chainId) {
     networkAlertButton.style.display = "block";
     networkAlertButton.innerHTML =
       "You are connected to Binance Smart Chain Testnet";
-  } else if (currentAccount != null && chainId !== "0x38") {
+  } else if (currentAccount != null && chainId === "0x38") {
     networkAlertButton.style.display = "block";
+    networkAlertButton.innerHTML = "You are connected to Binance Smart Chain";
   } else {
-    networkAlertButton.style.display = "none";
+    networkAlertButton.style.display = "block";
+    networkAlertButton.innerHTML =
+      "You are not connected to either Binance Smart Chain and Binance Smart Chain Testnet";
   }
 }
 
